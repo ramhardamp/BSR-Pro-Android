@@ -1,13 +1,55 @@
 name: BSR Pro Android Final Build
 on: [push, workflow_dispatch]
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download source
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Download Android source
         run: |
           set -eux
           curl -L --fail --retry 3 -o source.zip https://github.com/ramhardamp/BABASITARAM/archive/refs/heads/main.zip
           unzip -q source.zip
-          ls -la BABASITARAM-main/apk
+          rm source.zip
+          rm -rf android
+          cp -R BABASITARAM-main/apk android
+          rm -rf BABASITARAM-main
+          test -f android/gradlew
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
+      - name: Package ZIP
+        run: |
+          set -eux
+          mkdir -p package/BSR-Pro-Android/apk
+          cp -R android package/BSR-Pro-Android/android
+          cp android/app/build/outputs/apk/debug/app-debug.apk package/BSR-Pro-Android/apk/BSR-Pro-Android-debug.apk
+          printf '%s\n' '# BSR-Pro-Android' '' 'Android source and debug APK.' > package/BSR-Pro-Android/BUILD_INFO.md
+          (cd package && zip -qr ../BSR-Pro-Android-FINAL.zip BSR-Pro-Android)
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: BSR-Pro-Android-FINAL
+          path: |
+            BSR-Pro-Android-FINAL.zip
+            android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload to repository
+        run: |
+          set -eux
+          mkdir -p releases
+          cp BSR-Pro-Android-FINAL.zip releases/
+          cp android/app/build/outputs/apk/debug/app-debug.apk releases/BSR-Pro-Android-debug.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add releases
+          git commit -m "build: BSR Pro Android APK and ZIP" || true
+          git push
