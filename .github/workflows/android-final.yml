@@ -1,103 +1,14 @@
-name: BSR Pro Android Final Build
+name: Test Build
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Download Android source
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl -L --fail --retry 3 -o source.zip https://github.com/ramhardamp/BABASITARAM/archive/refs/heads/main.zip
-          unzip -q source.zip
-          rm source.zip
-          rm -rf android
-          mkdir android
-          cp -R BABASITARAM-main/apk/. android/
-          rm -rf BABASITARAM-main
-
-      - name: Apply Android release configuration
-        shell: bash
-        run: |
-          set -euo pipefail
-          sed -i 's/compileSdk 34/compileSdk 36/; s/targetSdk 34/targetSdk 36/; s/versionCode 3/versionCode 54100/; s/versionName "3.2"/versionName "5.41.0"/' android/app/build.gradle
-          python3 - <<'PY'
-from pathlib import Path
-p=Path("android/app/src/main/AndroidManifest.xml")
-s=p.read_text()
-service='''        <service
-            android:name=".BsrAutofillService"
-            android:permission="android.permission.BIND_AUTOFILL_SERVICE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.service.autofill.AutofillService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.autofill"
-                android:resource="@xml/autofill_service" />
-        </service>
-
-'''
-if 'android:name=".BsrAutofillService"' not in s:
-    s=s.replace('        <activity',service+'        <activity',1)
-p.write_text(s)
-d=Path("android/app/src/main/res/xml")
-d.mkdir(parents=True,exist_ok=True)
-(d/"autofill_service.xml").write_text('''<?xml version="1.0" encoding="utf-8"?>
-<autofill-service xmlns:android="http://schemas.android.com/apk/res/android"
-    android:settingsActivity="com.babasitaram.pro.MainActivity" />
-''')
-PY
-
-      - name: Build debug APK
-        working-directory: android
-        shell: bash
-        run: |
-          set -euo pipefail
-          chmod +x gradlew
-          ./gradlew --no-daemon clean assembleDebug
-
-      - name: Package source and APK
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf package
-          mkdir -p package/BSR-Pro-Android/android package/BSR-Pro-Android/apk
-          cp -R android/. package/BSR-Pro-Android/android/
-          cp android/app/build/outputs/apk/debug/app-debug.apk package/BSR-Pro-Android/apk/BSR-Pro-Android-5.41.0-debug.apk
-          printf '%s\n' '# BSR-Pro-Android 5.41.0' '' 'GitHub Actions build.' '' '- Android source' '- Biometric bridge: BIOMETRIC_STRONG + DEVICE_CREDENTIAL' '- Autofill service registration' '- Debug APK' '' 'APK uses the standard Android debug signing key; production signing key is not included.' > package/BSR-Pro-Android/BUILD_INFO.md
-          (cd package && zip -qr ../BSR-Pro-Android-FINAL-5.41.0.zip BSR-Pro-Android)
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: BSR-Pro-Android-FINAL-5.41.0
-          path: BSR-Pro-Android-FINAL-5.41.0.zip
-
-      - name: Commit final package to repo
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p releases
-          cp BSR-Pro-Android-FINAL-5.41.0.zip releases/
-          cp android/app/build/outputs/apk/debug/app-debug.apk releases/BSR-Pro-Android-5.41.0-debug.apk
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add releases/
-          git commit -m "build: BSR Pro Android 5.41.0 final package" || true
-          git push
+      - run: echo "BSR workflow runner is working"
