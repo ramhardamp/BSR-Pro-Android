@@ -2807,23 +2807,44 @@
             }
         }
 
-        window.__bsrNativeFile = function(base64, fileName) {
-            if (!base64) {
-                const err = document.getElementById(nativePickerMode === 'restore' ? 'rErr' : 'impErr');
-                if (err) { err.textContent = '❌ File select/read failed'; err.style.display = 'block'; err.style.color = 'var(--err)'; }
+        let nativeFileName = '';
+        let nativeFileB64 = '';
+
+        window.__bsrNativeFileBegin = function(fileName) {
+            nativeFileName = fileName || 'backup.vaultbak';
+            nativeFileB64 = '';
+        };
+
+        window.__bsrNativeFileChunk = function(chunk) {
+            nativeFileB64 += chunk || '';
+        };
+
+        window.__bsrNativeFileEnd = function() {
+            if (!nativeFileB64) {
+                window.__bsrNativeFileError('Empty file');
                 return;
             }
             try {
-                const text = decodeNativeFile(base64);
-                if (nativePickerMode === 'restore') {
-                    handleRestoreText(text, fileName || 'backup.vaultbak');
-                } else {
-                    handleImportText(text, fileName || 'backup.vaultbak');
-                }
+                const bytes = Uint8Array.from(atob(nativeFileB64), c => c.charCodeAt(0));
+                const text = new TextDecoder().decode(bytes);
+                const name = nativeFileName || 'backup.vaultbak';
+                if (nativePickerMode === 'restore') handleRestoreText(text, name);
+                else handleImportText(text, name);
             } catch (e) {
-                const err = document.getElementById(nativePickerMode === 'restore' ? 'rErr' : 'impErr');
-                if (err) { err.textContent = '❌ File decode failed'; err.style.display = 'block'; err.style.color = 'var(--err)'; }
+                window.__bsrNativeFileError(e.message || 'Decode failed');
+            } finally {
+                nativeFileB64 = '';
             }
+        };
+
+        window.__bsrNativeFileError = function(message) {
+            const err = document.getElementById(nativePickerMode === 'restore' ? 'rErr' : 'impErr');
+            if (err) {
+                err.textContent = '❌ ' + (message || 'File read failed');
+                err.style.display = 'block';
+                err.style.color = 'var(--err)';
+            }
+            nativeFileB64 = '';
         };
 
         async function handleImp(input) {
