@@ -138,58 +138,31 @@ public class MainActivity extends AppCompatActivity {
         pendingBiometricCallback = null;
     }
 
-    // ── File Read ──
+    // ── File Read (chunked to avoid WebView evaluateJavascript size limits) ──
     private void readFileAndSendToJs(Uri uri) {
         try {
             InputStream is = getContentResolver().openInputStream(uri);
-            if (is == null) throw new IOException("Cannot open file");
+            if (is == null) throw new IOException("Cannot open selected file");
 
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            byte[] chunk = new byte[8192];
+            String fileName = getFileName(uri);
+            webView.post(() -> webView.evaluateJavascript(
+                    "window.__bsrNativeFileBegin(" + JSONObject.quote(fileName) + ");", null));
+
+            byte[] chunk = new byte[12288];
             int n;
-            while ((n = is.read(chunk)) != -1) buffer.write(chunk, 0, n);
+            while ((n = is.read(chunk)) != -1) {
+                String b64 = Base64.encodeToString(chunk, 0, n, Base64.NO_WRAP);
+                String js = "window.__bsrNativeFileChunk(" + JSONObject.quote(b64) + ");";
+                webView.post(() -> webView.evaluateJavascript(js, null));
+            }
             is.close();
 
-            byte[] bytes = buffer.toByteArray();
-            String contentB64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
-            String fileName = getFileName(uri);
-            String safeB64 = JSONObject.quote(contentB64);
-            String safeName = JSONObject.quote(fileName);
-
-            String js = pendingPickerCallback + "(" + safeB64 + ", " + safeName + ");";
-            webView.post(() -> webView.evaluateJavascript(js, null));
+            webView.post(() -> webView.evaluateJavascript(
+                    "window.__bsrNativeFileEnd();", null));
         } catch (Exception e) {
-            if (pendingPickerCallback != null)
-                webView.post(() -> webView.evaluateJavascript(pendingPickerCallback + "(null, null);", null));
-            runOnUiThread(() -> Toast.makeText(this,
-                    "❌ File read failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
-        } finally {
-            pendingPickerCallback = null;
+            webView.post(() -> webView.evaluateJavascript(
+                    "window.__bsrNativeFileError(" + JSONObject.quote(e.getMessage() == null ? "File read failed" : e.getMessage()) + ");", null));
         }
-    }
-
-    private String getFileName(Uri uri) {
-        Cursor cursor = null;
-        try {
-            cursor = getContentResolver().query(uri,
-                    new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null);
-            if (cursor != null && cursor.moveToFirst()) {
-                int idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                if (idx >= 0) {
-                    String name = cursor.getString(idx);
-                    if (name != null && !name.trim().isEmpty()) return name;
-                }
-            }
-        } catch (Exception ignored) {
-        } finally {
-            if (cursor != null) cursor.close();
-        }
-
-        String name = uri.getLastPathSegment();
-        if (name == null || name.trim().isEmpty()) name = "backup.vaultbak";
-        int slash = name.lastIndexOf('/');
-        if (slash >= 0) name = name.substring(slash + 1);
-        return name;
     }
 
     @Override
@@ -244,11 +217,11 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void openFilePicker(String callbackFn) {
             pendingPickerCallback = callbackFn;
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.setType("*/*");
             intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/octet-stream", "application/json", "text/csv", "application/zip", "*/*"});
-            filePickerLauncher.launch(Intent.createChooser(intent, "Backup file select karein"));
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            filePickerLauncher.launch(intent);
         }
 
         @JavascriptInterface
