@@ -1,14 +1,12 @@
-name: Test Build
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+name: BSR Pro Android Final Build
+on: [push, workflow_dispatch]
 permissions:
   contents: write
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: echo "BSR workflow runner is working"
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Runner test
+        run: echo "BSR runner OK"
