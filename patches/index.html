@@ -1,0 +1,3022 @@
+﻿<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BabaSitaRam Pro - Proprietary Password Manager</title>
+    <!-- Offline-safe: Google Fonts fallback to system fonts on Android -->
+    <style>
+        @font-face { font-family: 'Syne'; src: local('Roboto'), local('sans-serif'); }
+    </style>
+    <style>
+        :root {
+            --bg: #07090f;
+            --surface: #0d1117;
+            --s2: #121820;
+            --s3: #171f2e;
+            --s4: #1c2438;
+            --border: rgba(56, 139, 253, 0.1);
+            --b2: rgba(56, 139, 253, 0.2);
+            --accent: #3b82f6;
+            --a2: #06b6d4;
+            --a3: #8b5cf6;
+            --a4: #ec4899;
+            --ok: #10b981;
+            --warn: #f59e0b;
+            --err: #ef4444;
+            --text: #e2e8f0;
+            --t2: #94a3b8;
+            --t3: #4a5568;
+            --t4: #2d3748;
+            --r: 14px;
+            --rs: 8px;
+            --rx: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Syne', Roboto, 'Noto Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--s4);
+            border-radius: 2px
+        }
+
+        /* body decorations removed for performance */
+
+        #lockScreen { position:fixed;inset:0;display:flex;flex-direction:column;z-index:2000;overflow:hidden }
+        .ls-bg { position:absolute;inset:0;background:url(maharaj-bg.jpg) center/cover no-repeat;filter:brightness(.35) }
+        .ls-overlay { position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,9,15,.1) 0%,rgba(7,9,15,.5) 40%,rgba(7,9,15,.95) 100%) }
+        .ls-top { position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:20px;text-align:center }
+        .ls-photo { width:120px;height:120px;border-radius:50%;object-fit:cover;object-position:center top;border:3px solid rgba(255,255,255,.3);box-shadow:0 0 0 6px rgba(59,130,246,.2),0 8px 32px rgba(0,0,0,.7);margin-bottom:14px }
+        .ls-name { font-size:24px;font-weight:800;color:#fff;letter-spacing:-.3px;text-shadow:0 2px 16px rgba(0,0,0,.8) }
+        .ls-tagline { font-size:11px;color:rgba(255,255,255,.5);margin-top:5px;letter-spacing:.8px;text-transform:uppercase }
+
+        .lc { position:relative;z-index:1;background:rgba(10,13,20,.97);border:1px solid rgba(56,139,253,.15);border-radius:28px 28px 0 0;padding:28px 22px 36px;width:100%;box-shadow:0 -8px 40px rgba(0,0,0,.6) }
+
+        .lc::before { content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:44px;height:4px;background:rgba(255,255,255,.15);border-radius:2px }
+
+        .lc-logo { display:none }
+
+        .lc-icon {
+            width: 88px;
+            height: 88px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(59, 130, 246, .25), 0 8px 32px rgba(0,0,0,.4)
+        }
+        .lc-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 22px
+        }
+
+        .lc-title {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e2e8f0, var(--a2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -.5px
+        }
+
+        .lc-sub {
+            color: var(--t2);
+            font-size: 12px;
+            margin-top: 5px
+        }
+
+        .ltabs { display:flex;gap:4px;background:rgba(255,255,255,.07);border-radius:12px;padding:4px;margin-bottom:20px }
+
+        .ltab { flex:1;padding:9px 4px;background:none;border:none;color:rgba(255,255,255,.4);font-family:Roboto,sans-serif;font-size:11px;font-weight:700;border-radius:9px;cursor:pointer;transition:all .2s;letter-spacing:.3px }
+
+        .ltab.on { background:rgba(59,130,246,.28);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3) }
+
+        .ig {
+            margin-bottom: 14px
+        }
+
+        .il {
+            font-size: 11px;
+            color: var(--t2);
+            margin-bottom: 7px;
+            display: block;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .6px
+        }
+
+        .inp {
+            width: 100%;
+            background: var(--s2);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            padding: 11px 14px;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            outline: none;
+            transition: all .2s
+        }
+
+        .inp:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .1)
+        }
+
+        .inp.err {
+            border-color: var(--err);
+            animation: shake .3s
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: none
+            }
+
+            25% {
+                transform: translateX(-6px)
+            }
+
+            75% {
+                transform: translateX(6px)
+            }
+        }
+
+        .ipw {
+            position: relative
+        }
+
+        .ipw .inp {
+            padding-right: 42px
+        }
+
+        .eye {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--t2);
+            font-size: 15px;
+            padding: 2px;
+            transition: color .2s
+        }
+
+        .eye:hover {
+            color: var(--text)
+        }
+
+        .sbr {
+            height: 3px;
+            border-radius: 2px;
+            background: var(--s4);
+            margin-top: 7px;
+            overflow: hidden
+        }
+
+        .sbf {
+            height: 100%;
+            border-radius: 2px;
+            transition: all .3s;
+            background: var(--err)
+        }
+
+        .sbt {
+            font-size: 10px;
+            color: var(--t2);
+            margin-top: 4px
+        }
+
+        .bpri {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent), var(--a2));
+            border: none;
+            border-radius: var(--rs);
+            padding: 12px;
+            color: #fff;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: .3px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .bpri:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, .35)
+        }
+
+        .bpri:active {
+            transform: scale(.98)
+        }
+
+        .bpri:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .lerr {
+            color: var(--err);
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+            display: none
+        }
+
+        .fp-btn {
+            width: 100%;
+            background: var(--s2);
+            border: 1px solid var(--b2);
+            border-radius: var(--rs);
+            padding: 11px;
+            color: var(--a2);
+            font-family: 'Syne', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px
+        }
+
+        .fp-btn:hover {
+            background: var(--s3);
+            border-color: var(--accent)
+        }
+
+        .fp-note {
+            font-size: 10px;
+            color: var(--t3);
+            text-align: center;
+            margin-top: 6px
+        }
+
+        #app {
+            display: none;
+            min-height: 100vh
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh
+        }
+
+        .sb {
+            width: 252px;
+            min-height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100
+        }
+
+        .sb-logo {
+            padding: 20px 16px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .sl-ic {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, .3);
+            flex-shrink: 0
+        }
+        .sl-ic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+        .sl-nm {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -.5px
+        }
+
+        .sl-vr {
+            font-size: 9px;
+            color: var(--t3);
+            margin-top: 1px
+        }
+
+        .sb-srch {
+            padding: 12px 12px 10px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .sw {
+            position: relative
+        }
+
+        .si {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--t3);
+            font-size: 12px;
+            pointer-events: none
+        }
+
+        .srch {
+            width: 100%;
+            background: var(--s2);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            padding: 8px 10px 8px 30px;
+            color: var(--text);
+            font-family: 'Syne', sans-serif;
+            font-size: 12px;
+            outline: none;
+            transition: all .2s
+        }
+
+        .srch:focus {
+            border-color: var(--accent)
+        }
+
+        .sb-nav {
+            padding: 10px 8px;
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch
+        }
+
+        .nst {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--t3);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 8px 10px 5px
+        }
+
+        .ni {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 10px;
+            border-radius: var(--rs);
+            cursor: pointer;
+            transition: all .15s;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--t2);
+            margin-bottom: 1px
+        }
+
+        .ni:hover {
+            background: var(--s2);
+            color: var(--text)
+        }
+
+        .ni.on {
+            background: rgba(59, 130, 246, .12);
+            color: var(--a2)
+        }
+
+        .ni-ic {
+            font-size: 14px;
+            width: 18px;
+            text-align: center
+        }
+
+        .nb {
+            margin-left: auto;
+            background: var(--s3);
+            color: var(--t2);
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px
+        }
+
+        .ni.on .nb {
+            background: rgba(59, 130, 246, .2);
+            color: var(--accent)
+        }
+
+        .sb-ft {
+            padding: 12px 8px;
+            border-top: 1px solid var(--border)
+        }
+
+        .uc {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 10px;
+            border-radius: var(--rs);
+            cursor: pointer;
+            transition: background .15s
+        }
+
+        .uc:hover {
+            background: var(--s2)
+        }
+
+        .uav {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--a3), var(--accent));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0
+        }
+
+        .un {
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        .ust {
+            font-size: 10px;
+            color: var(--ok);
+            display: flex;
+            align-items: center;
+            gap: 3px
+        }
+
+        .ust::before {
+            content: '●';
+            font-size: 7px
+        }
+
+        .main {
+            margin-left: 252px;
+            flex: 1;
+            padding: 24px 28px;
+            position: relative;
+            z-index: 1
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .pt {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -.5px
+        }
+
+        .ps {
+            font-size: 12px;
+            color: var(--t2);
+            margin-top: 3px
+        }
+
+        .tba {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: var(--rs);
+            border: none;
+            cursor: pointer;
+            font-family: 'Syne', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap
+        }
+
+        .ba {
+            background: linear-gradient(135deg, var(--accent), var(--a2));
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, .25)
+        }
+
+        .ba:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, .35)
+        }
+
+        .bg {
+            background: var(--s2);
+            color: var(--t2);
+            border: 1px solid var(--border)
+        }
+
+        .bg:hover {
+            background: var(--s3);
+            color: var(--text)
+        }
+
+        .bd {
+            background: rgba(239, 68, 68, .1);
+            color: var(--err);
+            border: 1px solid rgba(239, 68, 68, .2)
+        }
+
+        .bd:hover {
+            background: rgba(239, 68, 68, .18)
+        }
+
+        .bw {
+            background: rgba(245, 158, 11, .1);
+            color: var(--warn);
+            border: 1px solid rgba(245, 158, 11, .2)
+        }
+
+        .bw:hover {
+            background: rgba(245, 158, 11, .18)
+        }
+
+        .bp {
+            background: rgba(139, 92, 246, .12);
+            color: #c084fc;
+            border: 1px solid rgba(139, 92, 246, .25)
+        }
+
+        .bp:hover {
+            background: rgba(139, 92, 246, .2)
+        }
+
+        .srow {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 24px
+        }
+
+        .sc {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: all .2s
+        }
+
+        .sc:hover {
+            border-color: var(--b2)
+        }
+
+        .sc::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px
+        }
+
+        .sc:nth-child(1)::before {
+            background: linear-gradient(90deg, var(--accent), var(--a2))
+        }
+
+        .sc:nth-child(2)::before {
+            background: linear-gradient(90deg, var(--ok), #34d399)
+        }
+
+        .sc:nth-child(3)::before {
+            background: linear-gradient(90deg, var(--warn), #fcd34d)
+        }
+
+        .sc:nth-child(4)::before {
+            background: linear-gradient(90deg, var(--a3), #c084fc)
+        }
+
+        .sc-ic {
+            font-size: 20px;
+            margin-bottom: 10px
+        }
+
+        .sc-n {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -1px
+        }
+
+        .sc-l {
+            font-size: 11px;
+            color: var(--t2);
+            margin-top: 3px;
+            font-weight: 600
+        }
+
+        .lh {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .lt {
+            font-size: 14px;
+            font-weight: 700
+        }
+
+        .fr {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .fb {
+            padding: 5px 11px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--t2);
+            font-family: 'Syne', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s
+        }
+
+        .fb.on,
+        .fb:hover {
+            background: rgba(59, 130, 246, .1);
+            color: var(--a2);
+            border-color: rgba(59, 130, 246, .3)
+        }
+
+        .pwg {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px
+        }
+
+        .pwc {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 16px 18px;
+            transition: all .2s;
+            animation: fi .3s ease;
+            position: relative;
+            overflow: hidden
+        }
+
+        @keyframes fi {
+            from { opacity: 0 }
+            to { opacity: 1 }
+        }
+
+        .pwc:hover {
+            border-color: var(--b2)
+        }
+        @media(hover:hover) {
+            .pwc:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3) }
+            .sc:hover { transform: translateY(-2px) }
+            .bcard:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3) }
+        }
+
+        .pwct {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px
+        }
+
+        .pwfav {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            flex-shrink: 0
+        }
+
+        .pwsite {
+            font-size: 14px;
+            font-weight: 800
+        }
+
+        .pwuser {
+            font-size: 11px;
+            color: var(--t2);
+            margin-top: 1px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 130px
+        }
+
+        .pwcat {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 10px;
+            margin-left: auto;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            white-space: nowrap
+        }
+
+        .pwrow {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--s2);
+            border-radius: var(--rs);
+            padding: 7px 9px;
+            margin-bottom: 6px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            min-width: 0
+        }
+
+        .pwrl {
+            color: var(--t3);
+            width: 18px;
+            flex-shrink: 0;
+            text-align: center;
+            font-size: 13px
+        }
+
+        .pwrv {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0
+        }
+
+        .pwrm {
+            color: var(--t2);
+            letter-spacing: 2px
+        }
+
+        .ib {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--t2);
+            font-size: 13px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all .15s;
+            flex-shrink: 0
+        }
+
+        .ib:hover {
+            background: var(--s3);
+            color: var(--text)
+        }
+
+        .ib.cp:hover {
+            color: var(--ok)
+        }
+
+        .ib.ed:hover {
+            color: var(--accent)
+        }
+
+        .ib.dl:hover {
+            color: var(--err)
+        }
+
+        .pwact {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px
+        }
+
+        .pwb {
+            flex: 1;
+            padding: 6px;
+            border-radius: var(--rs);
+            border: 1px solid var(--border);
+            background: var(--s2);
+            color: var(--t2);
+            font-family: 'Syne', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s;
+            text-align: center
+        }
+
+        .pwb:hover {
+            background: var(--s3);
+            color: var(--text)
+        }
+
+        .pwb.cpb:hover {
+            color: var(--ok);
+            border-color: rgba(16, 185, 129, .3)
+        }
+
+        .pwb.edb:hover {
+            color: var(--accent);
+            border-color: rgba(59, 130, 246, .3)
+        }
+
+        .pwb.dlb:hover {
+            color: var(--err);
+            border-color: rgba(239, 68, 68, .3)
+        }
+
+        .pwb.afb:hover {
+            color: var(--a3);
+            border-color: rgba(139, 92, 246, .3)
+        }
+
+        .pwstr {
+            height: 2px;
+            border-radius: 2px;
+            background: var(--s3);
+            overflow: hidden;
+            margin-top: 8px
+        }
+
+        .pwsf {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .3s
+        }
+
+        .pwsl {
+            font-size: 9px;
+            font-weight: 700;
+            margin-top: 3px
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1/-1
+        }
+
+        .ei {
+            font-size: 44px;
+            opacity: .3;
+            margin-bottom: 14px
+        }
+
+        .et {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px
+        }
+
+        .es {
+            font-size: 12px;
+            color: var(--t2)
+        }
+
+        .mbg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .82);
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+            padding: 16px
+        }
+
+        .mbg.open {
+            opacity: 1;
+            pointer-events: all
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--rx);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, .6);
+            transform: scale(.95);
+            transition: transform .2s
+        }
+
+        .mbg.open .modal {
+            transform: scale(1)
+        }
+
+        .mh {
+            padding: 22px 22px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px
+        }
+
+        .mt {
+            font-size: 17px;
+            font-weight: 800
+        }
+
+        .mx {
+            width: 30px;
+            height: 30px;
+            background: var(--s2);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            color: var(--t2);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s
+        }
+
+        .mx:hover {
+            background: var(--s3);
+            color: var(--text)
+        }
+
+        .mb {
+            padding: 0 22px 22px
+        }
+
+        .frow {
+            display: flex;
+            gap: 10px
+        }
+
+        .frow .ig {
+            flex: 1
+        }
+
+        .catg {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 14px
+        }
+
+        .cato {
+            padding: 9px 6px;
+            border-radius: var(--rs);
+            border: 1px solid var(--border);
+            background: var(--s2);
+            cursor: pointer;
+            transition: all .15s;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--t2)
+        }
+
+        .cato em {
+            font-size: 17px;
+            display: block;
+            margin-bottom: 3px;
+            font-style: normal
+        }
+
+        .cato.on {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, .1);
+            color: var(--a2)
+        }
+
+        .pgrow {
+            display: flex;
+            gap: 7px;
+            align-items: flex-end
+        }
+
+        .pgrow .ig {
+            flex: 1;
+            margin-bottom: 0
+        }
+
+        .bgen {
+            padding: 11px 12px;
+            background: rgba(139, 92, 246, .12);
+            border: 1px solid rgba(139, 92, 246, .25);
+            border-radius: var(--rs);
+            color: #c084fc;
+            cursor: pointer;
+            transition: all .15s;
+            font-family: 'Syne', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px
+        }
+
+        .bgen:hover {
+            background: rgba(139, 92, 246, .22)
+        }
+
+        .div {
+            height: 1px;
+            background: var(--border);
+            margin: 18px 0
+        }
+
+        .ntinp {
+            min-height: 60px;
+            resize: vertical;
+            font-family: 'DM Mono', monospace
+        }
+
+        .tog {
+            width: 40px;
+            height: 22px;
+            background: var(--s3);
+            border-radius: 11px;
+            cursor: pointer;
+            position: relative;
+            transition: background .2s;
+            border: none;
+            flex-shrink: 0
+        }
+
+        .tog::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform .2s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .3)
+        }
+
+        .tog.on {
+            background: var(--accent)
+        }
+
+        .tog.on::after {
+            transform: translateX(18px)
+        }
+
+        .togrow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 0;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .togrow:last-child {
+            border-bottom: none
+        }
+
+        .ti {
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        .ts {
+            font-size: 10px;
+            color: var(--t2);
+            margin-top: 2px
+        }
+
+        .gcrd {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 24px;
+            margin-bottom: 18px
+        }
+
+        .gout {
+            background: var(--s2);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            padding: 18px;
+            font-family: 'DM Mono', monospace;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-align: center;
+            color: var(--a2);
+            margin-bottom: 14px;
+            word-break: break-all;
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .gout:hover {
+            border-color: var(--b2)
+        }
+
+        .slg {
+            margin-bottom: 18px
+        }
+
+        .sll {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-weight: 700
+        }
+
+        .slv {
+            background: rgba(59, 130, 246, .13);
+            color: var(--accent);
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 12px
+        }
+
+        input[type=range] {
+            width: 100%;
+            height: 4px;
+            appearance: none;
+            background: var(--s3);
+            border-radius: 2px;
+            cursor: pointer;
+            outline: none
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(59, 130, 246, .4)
+        }
+
+        .bcgrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px
+        }
+
+        .bcard {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 22px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+            overflow: hidden
+        }
+
+        .bcard::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--a2));
+            opacity: 0;
+            transition: opacity .2s
+        }
+
+        .bcard:hover {
+            border-color: var(--b2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .3)
+        }
+
+        .bcard:hover::before {
+            opacity: 1
+        }
+
+        .bc-ic {
+            font-size: 36px;
+            margin-bottom: 12px
+        }
+
+        .bc-t {
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 6px
+        }
+
+        .bc-d {
+            font-size: 11px;
+            color: var(--t2);
+            line-height: 1.6
+        }
+
+        .bc-b {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            margin-top: 8px
+        }
+
+        .impinfo {
+            background: var(--s2);
+            border: 1px solid var(--b2);
+            border-radius: var(--rs);
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            font-size: 11px;
+            color: var(--a2);
+            line-height: 1.8
+        }
+
+        .impwarn {
+            background: rgba(245, 158, 11, .08);
+            border: 1px solid rgba(245, 158, 11, .2);
+            border-radius: var(--rs);
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            font-size: 11px;
+            color: var(--warn);
+            line-height: 1.7
+        }
+
+        .afs {
+            background: var(--s2);
+            border-radius: var(--rs);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border)
+        }
+
+        .afn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px
+        }
+
+        .afnum {
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(135deg, var(--accent), var(--a2));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            color: #fff;
+            flex-shrink: 0
+        }
+
+        .afst {
+            font-size: 13px;
+            font-weight: 700
+        }
+
+        .afd {
+            font-size: 11px;
+            color: var(--t2);
+            line-height: 1.7
+        }
+
+        .afcode {
+            background: var(--s3);
+            border-radius: 5px;
+            padding: 6px 10px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--a2);
+            margin-top: 6px;
+            word-break: break-all
+        }
+
+        .achip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--s3);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 3px;
+            cursor: pointer;
+            transition: all .15s
+        }
+
+        .achip:hover {
+            border-color: var(--accent);
+            color: var(--a2)
+        }
+
+        .achipg {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 12px
+        }
+
+        .ssec {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 20px;
+            margin-bottom: 14px
+        }
+
+        .sst {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--t2);
+            margin-bottom: 14px
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px
+        }
+
+        .about-item {
+            background: var(--s2);
+            border-radius: var(--rs);
+            padding: 12px;
+            text-align: center
+        }
+
+        .about-ic {
+            font-size: 22px;
+            margin-bottom: 6px
+        }
+
+        .about-t {
+            font-size: 11px;
+            font-weight: 700
+        }
+
+        .about-v {
+            font-size: 10px;
+            color: var(--t2);
+            margin-top: 2px
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            right: auto;
+            background: var(--s2);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            padding: 11px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            z-index: 9999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all .25s;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+            max-width: 320px
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1
+        }
+
+        .toast.ok {
+            border-color: rgba(16, 185, 129, .35);
+            color: var(--ok)
+        }
+
+        .toast.er {
+            border-color: rgba(239, 68, 68, .35);
+            color: var(--err)
+        }
+
+        .toast.in {
+            border-color: rgba(59, 130, 246, .35);
+            color: var(--a2)
+        }
+
+        .toast.wn {
+            border-color: rgba(245, 158, 11, .35);
+            color: var(--warn)
+        }
+
+        .cat-social {
+            background: rgba(59, 130, 246, .13);
+            color: #60a5fa
+        }
+
+        .cat-banking {
+            background: rgba(16, 185, 129, .13);
+            color: #34d399
+        }
+
+        .cat-email {
+            background: rgba(245, 158, 11, .13);
+            color: #fcd34d
+        }
+
+        .cat-work {
+            background: rgba(139, 92, 246, .13);
+            color: #c084fc
+        }
+
+        .cat-shopping {
+            background: rgba(236, 72, 153, .13);
+            color: #f472b6
+        }
+
+        .cat-games {
+            background: rgba(239, 68, 68, .13);
+            color: #f87171
+        }
+
+        .cat-other {
+            background: rgba(100, 116, 139, .13);
+            color: #94a3b8
+        }
+
+        .fav-social {
+            background: rgba(59, 130, 246, .12)
+        }
+
+        .fav-banking {
+            background: rgba(16, 185, 129, .12)
+        }
+
+        .fav-email {
+            background: rgba(245, 158, 11, .12)
+        }
+
+        .fav-work {
+            background: rgba(139, 92, 246, .12)
+        }
+
+        .fav-shopping {
+            background: rgba(236, 72, 153, .12)
+        }
+
+        .fav-games {
+            background: rgba(239, 68, 68, .12)
+        }
+
+        .fav-other {
+            background: rgba(100, 116, 139, .12)
+        }
+
+        .page {
+            display: none
+        }
+
+        .page.on {
+            display: block
+        }
+
+        @media(max-width:900px) {
+            .sb {
+                width: 220px
+            }
+
+            .main {
+                margin-left: 220px;
+                padding: 18px 14px
+            }
+
+            .srow {
+                grid-template-columns: repeat(2, 1fr)
+            }
+        }
+
+        @media(max-width:640px) {
+            .sb {
+                position: fixed;
+                left: -252px;
+                transition: left .25s;
+                z-index: 200
+            }
+
+            .sb.mopen {
+                left: 0
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 56px 12px 16px
+            }
+
+            .srow {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px
+            }
+
+            .pwg {
+                grid-template-columns: 1fr
+            }
+
+            .bcgrid {
+                grid-template-columns: 1fr
+            }
+
+            .topbar {
+                margin-bottom: 16px
+            }
+
+            .tba {
+                width: 100%;
+                justify-content: flex-end
+            }
+
+            #mBtn {
+                display: flex !important
+            }
+        }
+
+        #mBtn {
+            display: none;
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 300;
+            width: 40px;
+            height: 40px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.3)
+        }
+        .pwdup { position:absolute; top:8px; right:8px; background:rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.3); color:var(--warn); font-size:9px; font-weight:700; padding:2px 6px; border-radius:8px; }
+        .bin-act { display:flex; gap:6px; margin-top:10px; }
+        .bin-act .pwb { background:rgba(16,185,129,.08); color:var(--ok); border-color:rgba(16,185,129,.25); }
+        .bin-act .pwb:hover { background:rgba(16,185,129,.18); }
+        .bin-act .pwb.dlb:hover { color:var(--err); border-color:rgba(239,68,68,.3); background:rgba(239,68,68,.08); }
+    </style>
+</head>
+
+<body>
+    <button id="mBtn" onclick="toggleSidebar()">☰</button>
+    <div id="sbOverlay" onclick="toggleSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150"></div>
+
+    <!-- LOCK SCREEN -->
+    <div id="lockScreen">
+        <div class="ls-bg"></div>
+        <div class="ls-overlay"></div>
+        <div class="ls-top">
+            <img class="ls-photo" src="maharaj-bg.jpg" onerror="this.style.display='none'" alt="BSR">
+            <div class="ls-name">&#x1F64F; BabaSitaRam Pro</div>
+            <div class="ls-tagline">Secure Password Manager</div>
+        </div>
+        <div class="lc">
+            <div class="ltabs">
+                <button class="ltab on" onclick="swTab('unlock',this)">&#x1F513; Unlock</button>
+                <button class="ltab" onclick="swTab('setup',this)">&#x2699;&#xFE0F; Setup</button>
+                <button class="ltab" onclick="swTab('restore',this)">&#x1F4E5; Restore</button>
+            </div>
+            <div id="tU">
+                <div class="ig"><label class="il">Master Password</label>
+                    <div class="ipw"><input type="password" class="inp" id="mpI" placeholder="Master password..." onkeydown="if(event.key==='Enter')doUnlock()">
+                        <button class="eye" onclick="tv('mpI',this)">&#x1F441;</button>
+                    </div>
+                </div>
+                <button class="bpri" onclick="doUnlock()" id="ulBtn">&#x1F513; Vault &#x0916;&#x094B;&#x0932;&#x0947;&#x0902;</button>
+                <div id="bioNote" style="display:none;margin:8px 0;padding:10px;background:rgba(239,68,68,.15);border-radius:8px;font-size:13px;color:#fca5a5;text-align:center"></div>
+                <button class="fp-btn" id="fpBtn" onclick="fpUnlock()" style="display:none"><span style="font-size:20px">&#x261D;&#xFE0F;</span> Fingerprint &#x0938;&#x0947; Unlock</button>
+                <div class="fp-note" id="fpNote"></div>
+                <div class="lerr" id="lErr">&#x274C; &#x0917;&#x0932;&#x0924; Master Password!</div>
+            </div>
+            <div id="tS" style="display:none">
+                <div class="ig"><label class="il">New Master Password</label>
+                    <div class="ipw"><input type="password" class="inp" id="s1" placeholder="Strong password..." oninput="chkStr(this.value,'sf1','st1')">
+                        <button class="eye" onclick="tv('s1',this)">&#x1F441;</button>
+                    </div>
+                    <div class="sbr"><div class="sbf" id="sf1" style="width:0"></div></div>
+                    <div class="sbt" id="st1"></div>
+                </div>
+                <div class="ig"><label class="il">Confirm Password</label>
+                    <div class="ipw"><input type="password" class="inp" id="s2" placeholder="&#x0926;&#x094B;&#x092C;&#x093E;&#x0930;&#x093E;...">
+                        <button class="eye" onclick="tv('s2',this)">&#x1F441;</button>
+                    </div>
+                </div>
+                <button class="bpri" onclick="doSetup()">&#x2705; Setup &#x0915;&#x0930;&#x0947;&#x0902;</button>
+                <div class="lerr" id="sErr"></div>
+            </div>
+            <div id="tR" style="display:none">
+                <div class="impinfo">&#x1F4E5; <b>.vaultbak</b> &#x0915;&#x0947; &#x0932;&#x093F;&#x090F; Backup Password &#x0921;&#x093E;&#x0932;&#x0947;&#x0902;</div>
+                <div class="ig"><label class="il">Backup Password <span style="color:var(--err)">*</span></label>
+                    <div class="ipw"><input type="password" class="inp" id="rp" placeholder="Backup password...">
+                        <button class="eye" onclick="tv('rp',this)">&#x1F441;</button>
+                    </div>
+                </div>
+                <div class="ig"><label class="il">&#x0928;&#x092F;&#x093E; Master Password <span style="color:var(--err)">*</span></label>
+                    <div class="ipw"><input type="password" class="inp" id="rp2" placeholder="Naya vault password...">
+                        <button class="eye" onclick="tv('rp2',this)">&#x1F441;</button>
+                    </div>
+                </div>
+                <button class="bpri" onclick="startRestore()" id="rBtn">&#x1F4C1; Backup File Select &#x0915;&#x0930;&#x0947;&#x0902;</button>
+                <div id="rErr" style="font-size:12px;margin-top:10px;text-align:center;display:none"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP -->
+    <div id="app">
+        <div class="layout">
+            <aside class="sb" id="sidebar">
+                <div class="sb-logo">
+                    <div class="sl-ic"><img src="icon.png" onerror="this.parentElement.innerHTML='🔐';this.parentElement.style.background='linear-gradient(135deg,var(--accent),var(--a2))';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.style.fontSize='17px'" alt="BSR"></div>
+                    <div>
+                        <div class="sl-nm">BabaSitaRam Pro</div>
+                        <div class="sl-vr">v3.1 Proprietary</div>
+                    </div>
+                </div>
+                <div class="sb-srch">
+                    <div class="sw"><span class="si">🔍</span>
+                        <input class="srch" type="text" placeholder="Search..." oninput="doSrch(this.value)" id="msrch">
+                    </div>
+                </div>
+                <nav class="sb-nav">
+                    <div class="nst">Main</div>
+                    <div class="ni on" onclick="goPage('All',this)"><span class="ni-ic">🏠</span>All Passwords<span
+                            class="nb" id="bA">0</span></div>
+                    <div class="ni" onclick="goPage('Fav',this)"><span class="ni-ic">⭐</span>Favorites<span class="nb"
+                            id="bF">0</span></div>
+                    <div class="ni" onclick="goPage('Weak',this)"><span class="ni-ic">⚠️</span>Weak<span class="nb"
+                            id="bW">0</span></div>
+                    <div class="ni" onclick="goPage('Gen',this)"><span class="ni-ic">⚡</span>Generator</div>
+                    <div class="ni" onclick="goPage('Autofill',this)"><span class="ni-ic">🤖</span>Autofill Setup</div>
+                    <div class="nst" style="margin-top:10px">Categories</div>
+                    <div class="ni" onclick="fCat('Social',this)"><span class="ni-ic">💬</span>Social<span class="nb"
+                            id="cSocial">0</span></div>
+                    <div class="ni" onclick="fCat('Banking',this)"><span class="ni-ic">🏦</span>Banking<span class="nb"
+                            id="cBanking">0</span></div>
+                    <div class="ni" onclick="fCat('Email',this)"><span class="ni-ic">📧</span>Email<span class="nb"
+                            id="cEmail">0</span></div>
+                    <div class="ni" onclick="fCat('Work',this)"><span class="ni-ic">💼</span>Work<span class="nb"
+                            id="cWork">0</span></div>
+                    <div class="ni" onclick="fCat('Shopping',this)"><span class="ni-ic">🛒</span>Shopping<span
+                            class="nb" id="cShopping">0</span></div>
+                    <div class="ni" onclick="fCat('Games',this)"><span class="ni-ic">🎮</span>Games<span class="nb"
+                            id="cGames">0</span></div>
+                    <div class="nst" style="margin-top:10px">Tools</div>
+                    <div class="ni" onclick="goPage('Bin',this)"><span class="ni-ic">🗑️</span>Recycle Bin<span class="nb" id="bBin">0</span></div>
+                    <div class="ni" onclick="goPage('Export',this)"><span class="ni-ic">📤</span>Export</div>
+                    <div class="ni" onclick="goPage('Import',this)"><span class="ni-ic">📥</span>Import</div>
+                    <div class="ni" onclick="goPage('Settings',this)"><span class="ni-ic">⚙️</span>Settings</div>
+                </nav>
+                <div class="sb-ft">
+                    <div class="uc" onclick="goPage('Settings',null)">
+                        <div class="uav">V</div>
+                        <div>
+                            <div class="un">BSR User</div>
+                            <div class="ust">Vault Unlocked</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main">
+                <!-- ALL -->
+                <div class="page on" id="pAll">
+                    <div class="topbar">
+                        <div>
+                            <div class="pt">All Passwords 🔑</div>
+                            <div class="ps" id="allSub">Loading...</div>
+                        </div>
+                        <div class="tba">
+                            <button class="btn bg" onclick="openImpModal()">📥 Import</button>
+                            <button class="btn bp onclick=openAppSelector()>📱 App Select</button>
+ <button class="btn ba" onclick="openAdd()">➕ Add Password</button>
+                        </div>
+                    </div>
+                    <div class="srow">
+                        <div class="sc">
+                            <div class="sc-ic">🔑</div>
+                            <div class="sc-n" id="sT">0</div>
+                            <div class="sc-l">Total</div>
+                        </div>
+                        <div class="sc">
+                            <div class="sc-ic">💪</div>
+                            <div class="sc-n" id="sSt">0</div>
+                            <div class="sc-l">Strong</div>
+                        </div>
+                        <div class="sc">
+                            <div class="sc-ic">⚠️</div>
+                            <div class="sc-n" id="sW">0</div>
+                            <div class="sc-l">Weak/Fair</div>
+                        </div>
+                        <div class="sc">
+                            <div class="sc-ic">📂</div>
+                            <div class="sc-n" id="sC">0</div>
+                            <div class="sc-l">Categories</div>
+                        </div>
+                    </div>
+                    <div class="lh">
+                        <div class="lt">Passwords</div>
+                        <div class="fr">
+                            <button class="fb on" onclick="setSort('name',this)">A-Z</button>
+                            <button class="fb" onclick="setSort('str',this)">Strength</button>
+                            <button class="fb" onclick="setSort('cat',this)">Category</button>
+                            <button class="fb" onclick="setSort('date',this)">Latest</button>
+                        </div>
+                    </div>
+                    <div class="pwg" id="pwG"></div>
+                </div>
+
+                <!-- FAV -->
+                <div class="page" id="pFav">
+                    <div class="topbar">
+                        <div>
+                            <div class="pt">Favorites ⭐</div>
+                        </div><button class="btn ba" onclick="openAdd()">➕ Add</button>
+                    </div>
+                    <div class="pwg" id="favG"></div>
+                </div>
+
+                <!-- WEAK -->
+                <div class="page" id="pWeak">
+                    <div class="topbar">
+                        <div>
+                            <div class="pt">Weak Passwords ⚠️</div>
+                            <div class="ps">इन्हें जल्दी बदलें</div>
+                        </div>
+                    </div>
+                    <div class="pwg" id="weakG"></div>
+                </div>
+
+                <!-- GENERATOR -->
+                <div class="page" id="pGen">
+                    <div class="topbar">
+                        <div>
+                            <div class="pt">Generator ⚡</div>
+                            <div class="ps">Strong passwords बनाएं</div>
+                        </div>
+                    </div>
+                    <div class="gcrd">
+                        <div class="gout" id="gOut" onclick="cpGen()" title="Click to copy">Click Generate!</div>
+                        <div style="display:flex;gap:8px;margin-bottom:18px">
+                            <button class="btn ba" style="flex:1" onclick="doGen()">🎲 Generate</button>
+                            <button class="btn bg" onclick="cpGen()">📋 Copy</button>
+                            <button class="btn bp" onclick="saveGen()">💾 Save</button>
+                        </div>
+                        <div class="slg">
+                            <div class="sll"><span>Length</span><span class="slv" id="lenV">16</span></div>
+                            <input type="range" min="8" max="64" value="16" id="lenS"
+                                oninput="document.getElementById('lenV').textContent=this.value;doGen()">
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">Uppercase A-Z</div>
+                            </div><button class="tog on" id="tU2" onclick="togB(this);doGen()"></button>
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">Lowercase a-z</div>
+                            </div><button class="tog on" id="tL" onclick="togB(this);doGen()"></button>
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">Numbers 0-9</div>
+                            </div><button class="tog on" id="tN" onclick="togB(this);doGen()"></button>
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">Symbols !@#$%</div>
+                            </div><button class="tog on" id="tSy" onclick="togB(this);doGen()"></button>
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">No Ambiguous</div>
+                                <div class="ts">Skip: 0,O,l,1,I</div>
+                            </div><button class="tog" id="tAm" onclick="togB(this);doGen()"></button>
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">Pronounceable</div>
+                                <div class="ts">Easy to say syllables</div>
+                            </div><button class="tog" id="tPr" onclick="togB(this);doGen()"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AUTOFILL -->
+                <div class="page" id="pAutofill">
+                    <div class="topbar">
+                        <div>
+                            <div class="pt">Autofill Setup 🤖</div>
+                            <div class="ps">Browser & App autofill guide</div>
+                        </div>
+                    </div>
+                    <div class="gcrd" style="margin-bottom:16px">
+                        <div style="font-size:14px;font-weight:800;margin-bottom:14px">📱 App/Browser चुनें:</div>
+                        <div class="achipg">
+                            <div class="achip" onclick="showAFG('chrome')">🌐 Chrome</div>
+                            <div class="achip" onclick="showAFG('firefox')">🦊 Firefox</div>
+                            <div class="achip" onclick="showAFG('android')">🤖 Android</div>
+                            <div class="achip" onclick="showAFG('samsung')">📱 Samsung</div>
+                            <div class="achip" onclick="showAFG('edge')">💠 Edge</div>
+                            <div class="achip" onclick="showAFG('brave')">🦁 Brave</div>
+                            <div class="achip" onclick="showAFG('bitwarden')">🔐 Bitwarden</div>
+                        </div>
+                        <div id="afG" style="display:none"></div>
+                    </div>
+                    <div class="gcrd">
+                        <div style="font-size:14px;font-weight:800;margin-bottom:10px">⚡ Quick Copy for AutoFill</div>
+                        <div style="font-size:11px;color:var(--t2);margin-bottom:12px">Browser fill न हो तो यहाँ से
+                            manually copy करें</div>
+                        <div class="pwg" id="afQL"></div>
+                    </div>
+                </div>
+
+                <!-- RECYCLE BIN -->
+                <div class="page" id="pBin">
+                    <div class="topbar"><div><div class="pt">Recycle Bin 🗑️</div><div class="ps">Deleted passwords — restore ya permanently delete karo</div></div>
+                    <button class="btn bd" onclick="emptyBin()">🧹 Empty Bin</button></div>
+                    <div class="pwg" id="binG"></div>
+                </div>
+
+                <!-- EXPORT -->
+                <div class="page" id="pExport">
+                    <div class="topbar"><div><div class="pt">Export 📤</div><div class="ps">Data bahar nikalo</div></div></div>
+                    <div class="bcgrid">
+                        <div class="bcard" onclick="doExp('vaultbak')">
+                            <div class="bc-ic">🔐</div>
+                            <div class="bc-t">Export .vaultbak</div>
+                            <div class="bc-d">AES-256 Encrypted<br>Master Password protected</div>
+                            <div class="bc-b" style="background:rgba(59,130,246,.12);color:var(--accent)">Encrypted ✅</div>
+                        </div>
+                        <div class="bcard" onclick="doExp('json')">
+                            <div class="bc-ic">📋</div>
+                            <div class="bc-t">Export JSON</div>
+                            <div class="bc-d">Readable format<br>Doosre apps compatible</div>
+                            <div class="bc-b" style="background:rgba(245,158,11,.12);color:var(--warn)">Unencrypted ⚠️</div>
+                        </div>
+                        <div class="bcard" onclick="doExp('csv')">
+                            <div class="bc-ic">📊</div>
+                            <div class="bc-t">Export CSV</div>
+                            <div class="bc-d">Chrome/Bitwarden import<br>Excel compatible</div>
+                            <div class="bc-b" style="background:rgba(139,92,246,.12);color:#c084fc">Universal 📎</div>
+                        </div>
+                    </div>
+                    <div class="ssec" style="margin-top:16px">
+                        <div class="sst">⚠️ Danger Zone</div>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap">
+                            <button class="btn bd" onclick="clrAll()">🗑️ All Delete</button>
+                            <button class="btn bg" onclick="lockNow()">🔒 Lock</button>
+                            <button class="btn bw" onclick="chgMaster()">🔑 Change Master</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IMPORT -->
+                <div class="page" id="pImport">
+                    <div class="topbar"><div><div class="pt">Import 📥</div><div class="ps">Backup restore karo</div></div></div>
+                    <div class="bcgrid">
+                        <div class="bcard" onclick="openImpModal()">
+                            <div class="bc-ic">📂</div>
+                            <div class="bc-t">Import .vaultbak</div>
+                            <div class="bc-d">Encrypted backup restore<br>Master Password required</div>
+                            <div class="bc-b" style="background:rgba(59,130,246,.12);color:var(--accent)">Secure ✅</div>
+                        </div>
+                        <div class="bcard" onclick="openImpModal()">
+                            <div class="bc-ic">📋</div>
+                            <div class="bc-t">Import JSON / CSV</div>
+                            <div class="bc-d">Chrome / Bitwarden<br>VaultX JSON support</div>
+                            <div class="bc-b" style="background:rgba(16,185,129,.12);color:var(--ok)">Multi-format ✅</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BACKUP (compat) -->
+                <div class="page" id="pBackup">
+                    <div class="topbar">
+                        <div>
+                            <div class="pt">Backup & Restore 💾</div>
+                            <div class="ps">Data safe रखें</div>
+                        </div>
+                    </div>
+                    <div class="bcgrid">
+                        <div class="bcard" onclick="doExp('vaultbak')">
+                            <div class="bc-ic">🔐</div>
+                            <div class="bc-t">Export .vaultbak</div>
+                            <div class="bc-d">AES-256 Encrypted<br>Master Password protected</div>
+                            <div class="bc-b" style="background:rgba(59,130,246,.12);color:var(--accent)">Encrypted ✅
+                            </div>
+                        </div>
+                        <div class="bcard" onclick="openImpModal()">
+                            <div class="bc-ic">📥</div>
+                            <div class="bc-t">Import (.vaultbak / .json / .csv)</div>
+                            <div class="bc-d">Backup से restore<br>सभी formats support</div>
+                            <div class="bc-b" style="background:rgba(16,185,129,.12);color:var(--ok)">Multi-format ✅
+                            </div>
+                        </div>
+                        <div class="bcard" onclick="doExp('json')">
+                            <div class="bc-ic">📋</div>
+                            <div class="bc-t">Export JSON</div>
+                            <div class="bc-d">Readable format<br>दूसरे apps compatible</div>
+                            <div class="bc-b" style="background:rgba(245,158,11,.12);color:var(--warn)">Unencrypted
+                            </div>
+                        </div>
+                        <div class="bcard" onclick="doExp('csv')">
+                            <div class="bc-ic">📊</div>
+                            <div class="bc-t">Export CSV</div>
+                            <div class="bc-d">Chrome/Bitwarden import<br>Excel compatible</div>
+                            <div class="bc-b" style="background:rgba(139,92,246,.12);color:#c084fc">Universal</div>
+                        </div>
+                    </div>
+                    <div class="ssec" style="margin-top:16px">
+                        <div class="sst">⚠️ Danger Zone</div>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap">
+                            <button class="btn bd" onclick="clrAll()">🗑️ All Delete</button>
+                            <button class="btn bg" onclick="lockNow()">🔒 Lock</button>
+                            <button class="btn bw" onclick="chgMaster()">🔑 Change Master</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS -->
+                <div class="page" id="pSettings">
+                    <div class="topbar">
+                        <div>
+                            <div class="pt">Settings ⚙️</div>
+                        </div>
+                    </div>
+                    <div class="ssec">
+                        <div class="sst">🔒 Security</div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">Auto-lock 5 min</div>
+                                <div class="ts">5 मिनट बाद auto lock</div>
+                            </div><button class="tog on" id="sAL" onclick="togB(this);svSet()"></button>
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">Passwords hide by default</div>
+                                <div class="ts">Cards में •••• दिखाएं</div>
+                            </div><button class="tog on" id="sHide" onclick="togB(this);svSet()"></button>
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">Clipboard auto-clear 30s</div>
+                            </div><button class="tog on" id="sClip" onclick="togB(this);svSet()"></button>
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">🔐 Biometric / Screen Lock</div>
+                                <div class="ts" id="bioSt">App khulte hi verify karo</div>
+                            </div><button class="tog" id="sBio" onclick="togBio(this)"></button>
+                        </div>
+                        <div class="togrow">
+                            <div>
+                                <div class="ti">🫆 Fingerprint / Face Login</div>
+                                <div class="ts" id="fpSt">WebAuthn (HTTPS required)</div>
+                            </div><button class="tog" id="sFP" onclick="setupFP(this)"></button>
+                        </div>
+                        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+                            <button class="btn bw" onclick="chgMaster()">🔑 Master Password बदलें</button>
+                            <button class="btn bg" onclick="lockNow()">🔒 Lock Now</button>
+                        </div>
+                    </div>
+                    <div class="ssec">
+                        <div class="sst">ℹ️ About BabaSitaRam Pro</div>
+                        <div class="about-grid">
+                            <div class="about-item">
+                                <div class="about-ic">🔒</div>
+                                <div class="about-t">AES-256-GCM</div>
+                                <div class="about-v">Encryption</div>
+                            </div>
+                            <div class="about-item">
+                                <div class="about-ic">📴</div>
+                                <div class="about-t">100% Offline</div>
+                                <div class="about-v">No Internet needed</div>
+                            </div>
+                            <div class="about-item">
+                                <div class="about-ic">💾</div>
+                                <div class="about-t">Local Storage</div>
+                                <div class="about-v">Browser में safe</div>
+                            </div>
+                            <div class="about-item">
+                                <div class="about-ic">📁</div>
+                                <div class="about-t">.vaultbak+CSV+JSON</div>
+                                <div class="about-v">Import/Export</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT MODAL -->
+    <div class="mbg" id="mAdd">
+        <div class="modal">
+            <div class="mh">
+                <div class="mt" id="mAddT">➕ New Password</div><button class="mx" onclick="closeM('mAdd')">✕</button>
+            </div>
+            <div class="mb">
+                <div class="ig"><label class="il">Website / App *</label><input type="text" class="inp" id="fSite"
+                        placeholder="Facebook, Gmail, SBI..."></div>
+                <div class="frow">
+                    <div class="ig"><label class="il">Username / Email *</label><input type="text" class="inp"
+                            id="fUser" placeholder="user@email.com" autocomplete="off"></div>
+                    <div class="ig"><label class="il">URL</label><input type="text" class="inp" id="fUrl"
+                            placeholder="https://..."></div>
+                </div>
+                <div class="ig"><label class="il">Password *</label>
+                    <div class="pgrow">
+                        <div class="ig" style="flex:1;margin-bottom:0">
+                            <div class="ipw"><input type="password" class="inp" id="fPw" placeholder="Password..."
+                                    oninput="updMS(this.value)" autocomplete="new-password">
+                                <button class="eye" onclick="tv('fPw',this)">👁</button>
+                            </div>
+                        </div>
+                        <button class="bgen" onclick="fillGen()">⚡ Generate</button>
+                    </div>
+                    <div class="sbr" style="margin-top:7px">
+                        <div class="sbf" id="mStr" style="width:0"></div>
+                    </div>
+                    <div class="sbt" id="mStrT"></div>
+                </div>
+                <div class="ig"><label class="il">Category</label>
+                    <div class="catg">
+                        <div class="cato on" data-cat="Social" onclick="pickCat(this)"><em>💬</em>Social</div>
+                        <div class="cato" data-cat="Banking" onclick="pickCat(this)"><em>🏦</em>Banking</div>
+                        <div class="cato" data-cat="Email" onclick="pickCat(this)"><em>📧</em>Email</div>
+                        <div class="cato" data-cat="Work" onclick="pickCat(this)"><em>💼</em>Work</div>
+                        <div class="cato" data-cat="Shopping" onclick="pickCat(this)"><em>🛒</em>Shopping</div>
+                        <div class="cato" data-cat="Games" onclick="pickCat(this)"><em>🎮</em>Games</div>
+                        <div class="cato" data-cat="Other" onclick="pickCat(this)"><em>📁</em>Other</div>
+                        <div class="cato" style="display:none"></div>
+                    </div>
+                </div>
+                <div class="ig"><label class="il">Notes</label><textarea class="inp ntinp" id="fNotes"
+                        placeholder="Security questions, hints..."></textarea></div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+                    <button class="tog" id="fFav" onclick="togB(this)"></button>
+                    <div class="ti">⭐ Favorite add करें</div>
+                </div>
+                <div class="div"></div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn bg" style="flex:1" onclick="closeM('mAdd')">Cancel</button>
+                    <button class="btn ba" style="flex:2" onclick="savePw()">💾 Save करें</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMPORT MODAL -->
+    <div class="mbg" id="mImp">
+        <div class="modal" style="max-width:460px">
+            <div class="mh">
+                <div class="mt">📥 Import Passwords</div><button class="mx" onclick="closeM('mImp')">✕</button>
+            </div>
+            <div class="mb">
+                <div class="impinfo">✅ <b>Supported:</b><br>• <b>.vaultbak</b> — Encrypted (Master Password
+                    required)<br>• <b>.json</b> — VaultX / Bitwarden / Chrome JSON<br>• <b>.csv</b> — Chrome / Bitwarden
+                    / 1Password CSV</div>
+                <div class="impwarn">🔑 <b>.vaultbak के लिए:</b> वही Master Password डालें जिससे <b>backup बनाया
+                        था</b><br>JSON/CSV के लिए खाली छोड़ें</div>
+                <div class="ig"><label class="il">Backup Master Password (.vaultbak)</label>
+                    <div class="ipw"><input type="password" class="inp" id="impPw" placeholder="Backup का password...">
+                        <button class="eye" onclick="tv('impPw',this)">👁</button>
+                    </div>
+                </div>
+                <div class="ig"><label class="il">Import Mode</label>
+                    <div style="display:flex;gap:8px">
+                        <button class="fb on" id="imMrg" onclick="setIM('merge',this)">🔀 Merge (Add)</button>
+                        <button class="fb" id="imRpl" onclick="setIM('replace',this)">♻️ Replace All</button>
+                    </div>
+                </div>
+                <div class="div"></div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn bg" style="flex:1" onclick="closeM('mImp')">Cancel</button>
+                    <button class="btn ba" style="flex:2" onclick="selectImportFile()">📁 File
+                        Select करें</button>
+                </div>
+                <div id="impErr" style="font-size:12px;margin-top:10px;text-align:center;display:none"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHANGE MASTER MODAL -->
+    <div class="mbg" id="mCM">
+        <div class="modal" style="max-width:420px">
+            <div class="mh">
+                <div class="mt">🔑 Master Password बदलें</div><button class="mx" onclick="closeM('mCM')">✕</button>
+            </div>
+            <div class="mb">
+                <div class="ig"><label class="il">Current Password</label>
+                    <div class="ipw"><input type="password" class="inp" id="cmC" placeholder="Current..."><button
+                            class="eye" onclick="tv('cmC',this)">👁</button></div>
+                </div>
+                <div class="ig"><label class="il">New Password</label>
+                    <div class="ipw"><input type="password" class="inp" id="cmN1" placeholder="New..."
+                            oninput="chkStr(this.value,'sf2','st2')"><button class="eye"
+                            onclick="tv('cmN1',this)">👁</button></div>
+                    <div class="sbr">
+                        <div class="sbf" id="sf2" style="width:0"></div>
+                    </div>
+                    <div class="sbt" id="st2"></div>
+                </div>
+                <div class="ig"><label class="il">Confirm New</label>
+                    <div class="ipw"><input type="password" class="inp" id="cmN2" placeholder="दोबारा..."><button
+                            class="eye" onclick="tv('cmN2',this)">👁</button></div>
+                </div>
+                <div id="cmErr" style="font-size:12px;text-align:center;margin-bottom:12px"></div>
+                <div class="div"></div>
+                <button class="bpri" onclick="saveCM()">✅ Change करें</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <input type="file" id="fImp" accept=".vaultbak,.json,.csv" style="display:none" onchange="handleImp(this)">
+    <input type="file" id="fR" accept=".vaultbak,.json,.csv" style="display:none" onchange="handleRestore(this)">
+
+    <script>
+        // ═══ STATE ═══
+        let V = { pw: [], master: '', settings: { autolock: true, hide: true, clip: true }, fpId: null, bin: [] };
+        let editI = -1, curCat = 'all', curSort = 'name', srchQ = '', impMode = 'merge';
+        let autoT, alSetup = false, failCount = 0, lockUntil = 0;
+
+        // ═══ UTILS ═══
+        const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        const esc = s => s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
+        function save() {
+            try { localStorage.setItem('vx3', JSON.stringify(V)); } catch (e) { }
+            try {
+                if (window.AndroidBridge && AndroidBridge.syncVault) {
+                    AndroidBridge.syncVault(JSON.stringify(V.pw || []));
+                }
+            } catch (e) { }
+            clearTimeout(save._abT);
+            save._abT = setTimeout(() => autoBackup(), 2000);
+        }
+        function load() { try { const d = localStorage.getItem('vx3'); if (d) { V = JSON.parse(d); if (!V.bin) V.bin = []; } } catch (e) { } }
+
+        // ═══ AUTO-BACKUP ═══
+        let _abRunning = false;
+        async function autoBackup() {
+            if (!V.master || !V.pw.length || _abRunning) return;
+            _abRunning = true;
+            try {
+                const meta = { app: 'BabaSitaRam Pro', version: '3', date: new Date().toISOString(), autoBackup: true };
+                const originHash = await signPayload({ app: meta.app, version: meta.version });
+                const enc = await encData({ passwords: V.pw, bin: V.bin || [], meta }, V.master);
+                const content = JSON.stringify({ app: 'BabaSitaRam Pro', version: '3', sig: VAULTX_SIG, originHash, encrypted: true, vault_backup: true, autoBackup: true, savedAt: new Date().toISOString(), data: enc });
+                if (window.AndroidBridge) {
+                    window.AndroidBridge.saveFile(content, 'bsr-auto-backup.vaultbak', 'application/json');
+                } else {
+                    const blob = new Blob([content], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = 'bsr-auto-backup.vaultbak'; a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 5000);
+                }
+            } catch (e) { } finally { _abRunning = false; }
+        }
+        function toast(msg, type = 'in', dur = 2500) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type + ' show'; clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), dur); }
+        function tv(id, btn) { const i = document.getElementById(id); i.type = i.type === 'password' ? 'text' : 'password'; btn.textContent = i.type === 'password' ? '👁' : '🙈'; }
+        function togB(b) { b.classList.toggle('on'); }
+        function closeM(id) { document.getElementById(id).classList.remove('open'); }
+        function openM(id) { document.getElementById(id).classList.add('open'); }
+        function toggleSidebar() { const sb = document.getElementById('sidebar'), ov = document.getElementById('sbOverlay'); sb.classList.toggle('mopen'); ov.style.display = sb.classList.contains('mopen') ? 'block' : 'none'; }
+
+        // ═══ CRYPTO ═══
+        async function deriveKey(pw, salt, it = 100000) {
+            const enc = new TextEncoder();
+            const km = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
+            return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: it, hash: 'SHA-256' }, km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+        }
+        async function encData(data, pw) {
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const key = await deriveKey(pw, salt);
+            const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(data)));
+            const buf = new Uint8Array(16 + 12 + ct.byteLength);
+            buf.set(salt, 0); buf.set(iv, 16); buf.set(new Uint8Array(ct), 28);
+            let binary = '';
+            const bytes = new Uint8Array(buf);
+            for (let i = 0; i < bytes.byteLength; i++) { binary += String.fromCharCode(bytes[i]); }
+            return btoa(binary);
+        }
+        async function decData(b64, pw) {
+            const raw = Uint8Array.from(atob(b64.replace(/\s/g, '')), c => c.charCodeAt(0));
+            const salt = raw.slice(0, 16), iv = raw.slice(16, 28), ct = raw.slice(28);
+            const iters = [100000, 600000, 10000, 5000, 2000, 1000, 1];
+            const salts = ['vx_3_salt', 'vx_2_salt', 'vx_salt', ''];
+            const passVariants = [pw];
+            for (let s of salts) { passVariants.push(await hashPw(pw, s)); }
+
+            for (let p of passVariants) {
+                for (let it of iters) {
+                    try {
+                        const key = await deriveKey(p, salt, it);
+                        const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+                        return JSON.parse(new TextDecoder().decode(dec));
+                    } catch (e) {
+                        // Continue trying other iterations/variants
+                    }
+                }
+            }
+            throw new Error('Wrong password or corrupted file');
+        }
+        async function hashPw(pw, salt = 'vx_3_salt') {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw + salt));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // ═══ LOCK ═══
+        function swTab(tab, btn) {
+            document.querySelectorAll('.ltab').forEach(t => t.classList.remove('on'));
+            if (btn) btn.classList.add('on');
+            ['tU', 'tS', 'tR'].forEach(id => document.getElementById(id).style.display = 'none');
+            document.getElementById({ unlock: 'tU', setup: 'tS', restore: 'tR' }[tab]).style.display = '';
+        }
+        async function doUnlock() {
+            const pw = document.getElementById('mpI').value;
+            const err = document.getElementById('lErr'), btn = document.getElementById('ulBtn');
+            if (!pw) { err.style.display = 'block'; return; }
+            const now = Date.now();
+            if (now < lockUntil) { err.textContent = `⏳ ${Math.ceil((lockUntil-now)/1000)}s baad try karo`; err.style.display = 'block'; return; }
+            btn.disabled = true; btn.textContent = '⏳ Checking...';
+            try {
+                if (!V.master) { V.master = await hashPw(pw); save(); enterApp(); return; }
+                const salts = ['vx_3_salt', 'vx_2_salt', 'vx_salt', ''];
+                let success = false;
+                for (let s of salts) { if (await hashPw(pw, s) === V.master) { success = true; break; } }
+                if (success) { failCount = 0; lockUntil = 0; enterApp(); }
+                else {
+                    failCount++;
+                    if (failCount >= 10) lockUntil = Date.now() + 5*60*1000;
+                    else if (failCount >= 5) lockUntil = Date.now() + 30*1000;
+                    else if (failCount >= 3) lockUntil = Date.now() + 5*1000;
+                    err.textContent = `❌ गलत Password! (${failCount} attempt${failCount>=3?' — wait required':''})`;
+                    err.style.display = 'block';
+                    document.getElementById('mpI').classList.add('err'); setTimeout(() => document.getElementById('mpI').classList.remove('err'), 400);
+                }
+            } finally { btn.disabled = false; btn.textContent = '🔓 Vault खोलें'; }
+        }
+        async function doSetup() {
+            const p1 = document.getElementById('s1').value, p2 = document.getElementById('s2').value;
+            const err = document.getElementById('sErr');
+            err.style.display = 'block';
+            if (p1.length < 6) { err.textContent = '❌ कम से कम 6 characters!'; return; }
+            if (p1 !== p2) { err.textContent = '❌ Passwords match नहीं!'; return; }
+            V.master = await hashPw(p1); save();
+            err.textContent = '✅ Set! अब Unlock करें'; err.style.color = 'var(--ok)';
+            setTimeout(() => { swTab('unlock', document.querySelectorAll('.ltab')[0]); err.style.display = 'none'; err.style.color = ''; }, 1200);
+        }
+        function enterApp() {
+            if (!V.bin) V.bin = [];
+            document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            setupAL(); loadSettings(); refreshAll(); doGen(); initFP();
+            try {
+                if (window.AndroidBridge && AndroidBridge.syncVault) {
+                    AndroidBridge.syncVault(JSON.stringify(V.pw || []));
+                }
+            } catch (e) {}
+        }
+        function _triggerBio() {
+            if (!window.AndroidBridge || !AndroidBridge.showBiometric) return;
+            if (!V.master) return;
+            if (!(V.settings && V.settings.biometric)) return;
+            document.getElementById('lockScreen').style.display = 'flex';
+            document.getElementById('app').style.display = 'none';
+            const bn = document.getElementById('bioNote'); if (bn) bn.style.display = 'none';
+            setTimeout(function() {
+                window._bioCb = function(success, msg) {
+                    if (success) { enterApp(); }
+                    else {
+                        const note = document.getElementById('bioNote');
+                        if (note) { note.style.display = 'block'; note.textContent = '🔐 ' + (msg || 'Failed') + ' - Password se unlock karo'; }
+                    }
+                };
+                AndroidBridge.showBiometric('window._bioCb');
+            }, 400);
+        }
+        function lockNow() {
+            document.getElementById('lockScreen').style.display = 'flex';
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('mpI').value = '';
+            document.getElementById('lErr').style.display = 'none';
+            const bn = document.getElementById('bioNote'); if (bn) bn.style.display = 'none';
+            clearTimeout(autoT);
+            _triggerBio();
+        }
+
+        // ═══ FINGERPRINT ═══
+        function initFP() {
+            const fpN = document.getElementById('fpNote'), fpB = document.getElementById('fpBtn'), sFP = document.getElementById('sFP');
+            if (!window.PublicKeyCredential) { fpN.textContent = '⚠️ Browser WebAuthn support नहीं'; return; }
+            const isHTTPS = location.protocol === 'https:' || location.hostname === 'localhost';
+            if (!isHTTPS) { fpN.textContent = '⚠️ Fingerprint: HTTPS required (file:// में काम नहीं)'; return; }
+            if (V.fpId) { fpB.style.display = 'flex'; sFP.classList.add('on'); fpN.textContent = '☝️ Fingerprint registered'; }
+        }
+        async function setupFP(btn) {
+            togB(btn);
+            if (!btn.classList.contains('on')) { V.fpId = null; save(); toast('Fingerprint disabled', 'wn'); document.getElementById('fpBtn').style.display = 'none'; return; }
+            if (!window.PublicKeyCredential) { toast('⚠️ Browser support नहीं', 'er'); btn.classList.remove('on'); return; }
+            const isHTTPS = location.protocol === 'https:' || location.hostname === 'localhost';
+            if (!isHTTPS) { toast('⚠️ HTTPS required', 'wn'); btn.classList.remove('on'); document.getElementById('fpSt').textContent = '⚠️ HTTPS required — file:// में काम नहीं'; return; }
+            try {
+                const cred = await navigator.credentials.create({
+                    publicKey: {
+                        challenge: crypto.getRandomValues(new Uint8Array(32)),
+                        rp: { name: 'BabaSitaRam Pro', id: location.hostname || 'localhost' },
+                        user: { id: new TextEncoder().encode('bsr-user'), name: 'BabaSitaRam Pro', displayName: 'BSR User' },
+                        pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+                        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' }, timeout: 60000
+                    }
+                });
+                V.fpId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId))); save();
+                toast('✅ Fingerprint registered!', 'ok');
+                document.getElementById('fpBtn').style.display = 'flex';
+                document.getElementById('fpNote').textContent = '☝️ Fingerprint registered';
+            } catch (e) { btn.classList.remove('on'); toast('❌ ' + e.message, 'er'); }
+        }
+        async function fpUnlock() {
+            if (!V.fpId) return;
+            try {
+                await navigator.credentials.get({
+                    publicKey: {
+                        challenge: crypto.getRandomValues(new Uint8Array(32)),
+                        rpId: location.hostname || 'localhost',
+                        allowCredentials: [{ type: 'public-key', id: Uint8Array.from(atob(V.fpId), c => c.charCodeAt(0)) }],
+                        userVerification: 'required', timeout: 60000
+                    }
+                });
+                enterApp();
+            } catch (e) { toast('❌ Fingerprint failed', 'er'); }
+        }
+
+        // ═══ AUTOLOCK ═══
+        function setupAL() {
+            if (!alSetup) {
+                ['click', 'keydown', 'mousemove', 'touchstart'].forEach(e => document.addEventListener(e, resetAL, { passive: true }));
+                alSetup = true;
+            }
+            resetAL();
+        }
+        function resetAL() {
+            clearTimeout(autoT);
+            if (!document.getElementById('sAL')?.classList.contains('on')) return;
+            autoT = setTimeout(lockNow, 5 * 60 * 1000);
+        }
+
+        // ═══ NAVIGATION ═══
+        function goPage(name, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+            document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+            const pg = document.getElementById('p' + name);
+            if (pg) pg.classList.add('on');
+            if (el) el.classList.add('on');
+            curCat = 'all'; srchQ = '';
+            const ms = document.getElementById('msrch'); if (ms) ms.value = '';
+            if (name === 'All') renderPws();
+            if (name === 'Fav') renderFavs();
+            if (name === 'Weak') renderWeak();
+            if (name === 'Gen') doGen();
+            if (name === 'Autofill') renderAFQ();
+            if (name === 'Bin') renderBin();
+        }
+        function fCat(cat, el) {
+            document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+            el.classList.add('on');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+            document.getElementById('pAll').classList.add('on');
+            curCat = cat; renderPws();
+        }
+
+        // ═══ SETTINGS PERSIST ═══
+        function loadSettings() {
+            const s = V.settings || {};
+            const map = { sAL: 'autolock', sHide: 'hide', sClip: 'clip' };
+            Object.entries(map).forEach(([id, key]) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const val = s[key] !== undefined ? s[key] : true;
+                val ? el.classList.add('on') : el.classList.remove('on');
+            });
+            const bEl = document.getElementById('sBio');
+            if (bEl) {
+                const bioOn = s.biometric === true;
+                bioOn ? bEl.classList.add('on') : bEl.classList.remove('on');
+                const bioSt = document.getElementById('bioSt');
+                if (bioSt) bioSt.textContent = bioOn ? '✅ Biometric ON - app khulte hi verify hoga' : 'App khulte hi verify karo';
+            }
+        }
+        function svSet() {
+            const bioEl = document.getElementById('sBio');
+            V.settings = {
+                autolock: document.getElementById('sAL').classList.contains('on'),
+                hide: document.getElementById('sHide').classList.contains('on'),
+                clip: document.getElementById('sClip').classList.contains('on'),
+                biometric: bioEl ? bioEl.classList.contains('on') : false
+            };
+            save();
+        }
+        function togBio(btn) {
+            togB(btn);
+            const on = btn.classList.contains('on');
+            const st = document.getElementById('bioSt');
+            if (on) {
+                if (window.AndroidBridge && AndroidBridge.isBiometricAvailable && !AndroidBridge.isBiometricAvailable()) {
+                    btn.classList.remove('on');
+                    toast('❌ Device lock set nahi hai! Pehle PIN/Pattern/Fingerprint set karo', 'er');
+                    return;
+                }
+                if (st) st.textContent = '✅ Biometric ON - app khulte hi verify hoga';
+                toast('🔐 Biometric lock ON!', 'ok');
+            } else {
+                if (st) st.textContent = 'App khulte hi verify karo';
+                toast('Biometric lock OFF', 'wn');
+            }
+            svSet();
+        }
+
+        // ═══ STRENGTH ═══
+        function strSc(pw) {
+            if (!pw) return { s: 0, l: '', c: '#ef4444', lv: 0 };
+            let sc = 0;
+            if (pw.length >= 8) sc++; if (pw.length >= 12) sc++;
+            if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) sc++;
+            if (/[0-9]/.test(pw)) sc++;
+            if (/[^a-zA-Z0-9]/.test(pw)) sc++;
+            const lv = Math.min(3, Math.floor(sc * 3 / 5));
+            return { s: lv + 1, l: ['Weak', 'Fair', 'Good', 'Strong'][lv], c: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'][lv], lv };
+        }
+        function chkStr(pw, fi, ti) {
+            const { s, l, c } = strSc(pw);
+            const f = document.getElementById(fi); if (f) { f.style.width = (s * 25) + '%'; f.style.background = c; }
+            const t = document.getElementById(ti); if (t) t.textContent = l ? 'Strength: ' + l : '';
+        }
+        function updMS(pw) { const { s, l, c } = strSc(pw); const f = document.getElementById('mStr'); f.style.width = (s * 25) + '%'; f.style.background = c; document.getElementById('mStrT').textContent = l ? 'Strength: ' + l : ''; }
+
+        // ═══ REFRESH ═══
+        function refreshAll() { updBadges(); updStats(); renderPws(); renderFavs(); renderWeak(); renderBin(); }
+        function updBadges() {
+            const pw = V.pw;
+            document.getElementById('bA').textContent = pw.length;
+            document.getElementById('bF').textContent = pw.filter(p => p.fav).length;
+            document.getElementById('bW').textContent = pw.filter(p => strSc(p.pw).lv < 2).length;
+            const binEl = document.getElementById('bBin'); if (binEl) binEl.textContent = (V.bin||[]).length || '';
+            ['Social', 'Banking', 'Email', 'Work', 'Shopping', 'Games'].forEach(c => { const el = document.getElementById('c' + c); if (el) el.textContent = pw.filter(p => p.cat === c).length; });
+        }
+        function updStats() {
+            const pw = V.pw;
+            document.getElementById('sT').textContent = pw.length;
+            document.getElementById('sSt').textContent = pw.filter(p => strSc(p.pw).lv >= 2).length;
+            document.getElementById('sW').textContent = pw.filter(p => strSc(p.pw).lv < 2).length;
+            document.getElementById('sC').textContent = [...new Set(pw.map(p => p.cat))].length;
+        }
+
+        // ═══ RENDER ═══
+        function getFilteredPws(filter) {
+            let pw = [...V.pw];
+            if (filter === 'fav') pw = pw.filter(p => p.fav);
+            else if (filter === 'weak') pw = pw.filter(p => strSc(p.pw).lv < 2);
+            else if (filter && filter !== 'all') pw = pw.filter(p => p.cat === filter);
+            if (srchQ) { const q = srchQ.toLowerCase(); pw = pw.filter(p => p.site.toLowerCase().includes(q) || p.user.toLowerCase().includes(q) || (p.cat || '').toLowerCase().includes(q)); }
+            if (curSort === 'name') pw.sort((a, b) => a.site.localeCompare(b.site));
+            else if (curSort === 'str') pw.sort((a, b) => strSc(b.pw).s - strSc(a.pw).s);
+            else if (curSort === 'cat') pw.sort((a, b) => (a.cat || '').localeCompare(b.cat || ''));
+            else if (curSort === 'date') pw.sort((a, b) => new Date(b.updated || 0) - new Date(a.updated || 0));
+            return pw;
+        }
+        const catEm = { Social: '💬', Banking: '🏦', Email: '📧', Work: '💼', Shopping: '🛒', Games: '🎮', Other: '📁' };
+        function isDupPw(p) { return V.pw.filter(x => x.pw === p.pw && x.id !== p.id).length > 0; }
+        function pwCard(p) {
+            const idx = V.pw.findIndex(x => x.id === p.id);
+            const { l, c } = strSc(p.pw);
+            const ct = (p.cat || 'other').toLowerCase();
+            const em = catEm[p.cat] || '🔑';
+            const hideByDefault = document.getElementById('sHide')?.classList.contains('on') !== false;
+            const pwDisplay = hideByDefault ? '••••••••••••' : p.pw;
+            const pwClass = hideByDefault ? 'pwrv pwrm' : 'pwrv';
+            const dup = isDupPw(p);
+            return `<div class="pwc" id="pc_${idx}" style="position:relative">
+    ${dup ? '<span class="pwdup">⚠️ Reused</span>' : ''}
+    <div class="pwct">
+      <div class="pwfav fav-${ct}">${em}</div>
+      <div style="flex:1;min-width:0"><div class="pwsite">${esc(p.site)}</div><div class="pwuser">${esc(p.user)}</div></div>
+      <span class="pwcat cat-${ct}">${esc(p.cat)}</span>
+      <button class="ib" onclick="togFav(${idx})" title="Favorite">${p.fav ? '⭐' : '☆'}</button>
+    </div>
+    <div class="pwrow"><span class="pwrl">👤</span><span class="pwrv" id="pu_${idx}">${esc(p.user)}</span><button class="ib cp" onclick="cpById('pu_${idx}','Username copied ✅')" title="Copy">📋</button></div>
+    <div class="pwrow"><span class="pwrl">🔑</span><span class="${pwClass}" id="pv_${idx}">${hideByDefault ? '••••••••••••' : esc(p.pw)}</span><button class="ib" onclick="togShow(${idx})" title="Show/Hide">👁</button><button class="ib cp" onclick="cpById('pv_${idx}','Password copied ✅',${idx})" title="Copy">📋</button></div>
+    ${p.url ? `<div class="pwrow"><span class="pwrl">🌐</span><a href="${esc(p.url)}" target="_blank" rel="noopener" style="color:var(--a2);font-family:'DM Mono',monospace;font-size:10px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.url)}</a></div>` : ''}
+    ${p.notes ? `<div class="pwrow"><span class="pwrl">📝</span><span class="pwrv" style="color:var(--t2);font-size:10px">${esc(p.notes)}</span></div>` : ''}
+    <div class="pwstr"><div class="pwsf" style="width:${strSc(p.pw).s * 20}%;background:${c}"></div></div>
+    <div class="pwsl" style="color:${c}">${l} Password</div>
+    <div class="pwact">
+      <button class="pwb cpb" onclick="cpById('pv_${idx}','Copied!',${idx})">📋 Copy PW</button>
+      <button class="pwb edb" onclick="openEdit(${idx})">✏️ Edit</button>
+      <button class="pwb afb" onclick="afFill(${idx})">🤖 AutoFill</button>
+      <button class="pwb dlb" onclick="delPw(${idx})">🗑️ Delete</button>
+    </div>
+  </div>`;
+        }
+        const emptyHtml = (ic, t, s) => `<div class="empty"><div class="ei">${ic}</div><div class="et">${t}</div><div class="es">${s}</div></div>`;
+        function renderPws() { const g = document.getElementById('pwG'); const pws = getFilteredPws(curCat); document.getElementById('allSub').textContent = `${pws.length} passwords${curCat !== 'all' ? ' in ' + curCat : ''}`; g.innerHTML = pws.length ? pws.map(pwCard).join('') : emptyHtml('🔒', 'कोई password नहीं', '➕ button से add करें'); }
+        function renderFavs() { const g = document.getElementById('favG'); const pws = getFilteredPws('fav'); g.innerHTML = pws.length ? pws.map(pwCard).join('') : emptyHtml('⭐', 'No favorites', '☆ दबाकर add करें'); }
+        function renderWeak() { const g = document.getElementById('weakG'); const pws = getFilteredPws('weak'); g.innerHTML = pws.length ? pws.map(pwCard).join('') : emptyHtml('✅', 'सब passwords strong!', 'Great job 🎉'); }
+        function renderBin() {
+            if (!V.bin) V.bin = [];
+            const g = document.getElementById('binG'); if (!g) return;
+            if (!V.bin.length) { g.innerHTML = emptyHtml('🗑️', 'Bin khaali hai', 'Delete kiye passwords yahan aayenge'); return; }
+            g.innerHTML = V.bin.map((p, i) => {
+                const daysAgo = Math.floor((Date.now() - new Date(p.deletedAt||Date.now())) / 86400000);
+                const ct = (p.cat||'other').toLowerCase(), em = catEm[p.cat]||'🔑';
+                return `<div class="pwc" style="opacity:.85"><div class="pwct"><div class="pwfav fav-${ct}">${em}</div><div style="flex:1;min-width:0"><div class="pwsite">${esc(p.site)}</div><div class="pwuser">${esc(p.user)}</div></div><span style="font-size:9px;color:var(--t3)">${daysAgo}d ago</span></div><div class="bin-act"><button class="pwb" onclick="restorePw(${i})">↩️ Restore</button><button class="pwb dlb" onclick="permDel(${i})">🗑️ Delete</button></div></div>`;
+            }).join('');
+        }
+        function restorePw(i) { const e={...V.bin[i]}; delete e.deletedAt; V.pw.push(e); V.bin.splice(i,1); save(); refreshAll(); toast('↩️ Restored!','ok'); }
+        function permDel(i) { if(!confirm('Permanently delete? Wapas nahi aayega!')) return; V.bin.splice(i,1); save(); refreshAll(); toast('🗑️ Permanently deleted','er'); }
+        function emptyBin() { if(!V.bin.length){toast('Bin already khaali hai','wn');return;} if(!confirm(V.bin.length+' passwords permanently delete honge!')) return; V.bin=[]; save(); refreshAll(); toast('🧹 Bin empty!','wn'); }
+        function renderAFQ() { const g = document.getElementById('afQL'); g.innerHTML = V.pw.slice(0, 6).map(pwCard).join('') || emptyHtml('🔑', 'कोई password नहीं', ''); }
+
+        // ═══ CARD ACTIONS ═══
+        function togShow(idx) {
+            const el = document.getElementById('pv_' + idx);
+            if (!el) return;
+            if (el.classList.contains('pwrm')) { el.textContent = V.pw[idx].pw; el.classList.remove('pwrm'); }
+            else { el.textContent = '••••••••••••'; el.classList.add('pwrm'); }
+        }
+        function togFav(idx) { V.pw[idx].fav = !V.pw[idx].fav; save(); refreshAll(); toast(V.pw[idx].fav ? '⭐ Added!' : '☆ Removed', 'in'); }
+        function delPw(idx) {
+            if (!confirm('❌ "' + V.pw[idx].site + '" delete करें? (Bin में जाएगा)')) return;
+            if (!V.bin) V.bin = [];
+            V.bin.unshift({ ...V.pw[idx], deletedAt: new Date().toISOString() });
+            V.pw.splice(idx, 1); save(); refreshAll(); toast('🗑️ Bin में गया!', 'wn');
+        }
+        function cpById(elId, msg, pwIdx) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            let text = el.classList.contains('pwrm') && pwIdx !== undefined ? V.pw[pwIdx].pw : el.textContent;
+            doCopy(text, msg);
+        }
+        function doCopy(text, msg) {
+            if (!text || text === 'Click Generate!' || text === '••••••••••••') return;
+            const fn = () => { toast('📋 ' + msg, 'ok'); if (document.getElementById('sClip').classList.contains('on')) setTimeout(() => { try { navigator.clipboard.writeText(''); } catch (e) { } }, 30000); };
+            if (navigator.clipboard) { navigator.clipboard.writeText(text).then(fn).catch(() => { fbCopy(text); fn(); }); }
+            else { fbCopy(text); fn(); }
+        }
+        function fbCopy(text) { const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) { } document.body.removeChild(ta); }
+        function setSort(s, btn) { document.querySelectorAll('.fr .fb').forEach(b => b.classList.remove('on')); btn.classList.add('on'); curSort = s; renderPws(); }
+        function doSrch(q) { srchQ = q; renderPws(); }
+
+        // ═══ ADD/EDIT ═══
+        function openAdd() {
+            editI = -1; document.getElementById('mAddT').textContent = '➕ New Password Add करें';
+            ['fSite', 'fUser', 'fUrl', 'fPw', 'fNotes'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('fFav').classList.remove('on');
+            document.getElementById('mStr').style.width = '0'; document.getElementById('mStrT').textContent = '';
+            document.querySelectorAll('.cato')[0].click();
+            openM('mAdd'); setTimeout(() => document.getElementById('fSite').focus(), 200);
+        }
+        function openEdit(idx) {
+            editI = idx; const p = V.pw[idx];
+            document.getElementById('mAddT').textContent = '✏️ Password Edit करें';
+            document.getElementById('fSite').value = p.site; document.getElementById('fUser').value = p.user;
+            document.getElementById('fUrl').value = p.url || ''; document.getElementById('fPw').value = p.pw;
+            document.getElementById('fNotes').value = p.notes || '';
+            p.fav ? document.getElementById('fFav').classList.add('on') : document.getElementById('fFav').classList.remove('on');
+            updMS(p.pw);
+            document.querySelectorAll('.cato').forEach(o => o.classList.toggle('on', o.dataset.cat === p.cat));
+            openM('mAdd');
+        }
+        function pickCat(el) { document.querySelectorAll('.cato').forEach(o => o.classList.remove('on')); el.classList.add('on'); }
+        function savePw() {
+            const site = document.getElementById('fSite').value.trim();
+            const user = document.getElementById('fUser').value.trim();
+            const pw = document.getElementById('fPw').value;
+            if (!site || !user || !pw) { toast('⚠️ Site, Username, Password जरूरी है!', 'wn'); return; }
+            const cat = (document.querySelector('.cato.on') || { dataset: { cat: 'Other' } }).dataset.cat;
+            const entry = { id: editI >= 0 ? V.pw[editI].id : uid(), site, user, url: document.getElementById('fUrl').value.trim(), pw, cat, notes: document.getElementById('fNotes').value.trim(), fav: document.getElementById('fFav').classList.contains('on'), created: editI >= 0 ? V.pw[editI].created : new Date().toISOString(), updated: new Date().toISOString() };
+            if (editI >= 0) V.pw[editI] = entry; else V.pw.push(entry);
+            save(); closeM('mAdd'); refreshAll();
+            toast(editI >= 0 ? '✅ Updated!' : '✅ Saved!', 'ok');
+        }
+
+        // ═══ GENERATOR ═══
+        function cryptoRand(max) { return crypto.getRandomValues(new Uint32Array(1))[0] % max; }
+        function genStr() {
+            const len = parseInt(document.getElementById('lenS').value);
+            if (document.getElementById('tPr').classList.contains('on')) {
+                const c = 'bcdfghjklmnpqrstvwxyz', v = 'aeiou'; let pw = '';
+                for (let i = 0; i < Math.ceil(len / 2); i++) { pw += c[cryptoRand(c.length)]; pw += v[cryptoRand(v.length)]; }
+                return pw.slice(0, len);
+            }
+            const amb = 'O0lI1'; const noAmb = document.getElementById('tAm').classList.contains('on');
+            let chars = '';
+            if (document.getElementById('tU2').classList.contains('on')) { let c = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; if (noAmb) c = c.split('').filter(x => !amb.includes(x)).join(''); chars += c; }
+            if (document.getElementById('tL').classList.contains('on')) { let c = 'abcdefghijklmnopqrstuvwxyz'; if (noAmb) c = c.split('').filter(x => !amb.includes(x)).join(''); chars += c; }
+            if (document.getElementById('tN').classList.contains('on')) { let c = '0123456789'; if (noAmb) c = c.split('').filter(x => !amb.includes(x)).join(''); chars += c; }
+            if (document.getElementById('tSy').classList.contains('on')) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+            if (!chars) chars = 'abcdefghijklmnopqrstuvwxyz';
+            let pw = ''; for (let i = 0; i < len; i++) pw += chars[cryptoRand(chars.length)];
+            return pw;
+        }
+        function doGen() { const pw = genStr(); const o = document.getElementById('gOut'); o.textContent = pw; o.style.color = strSc(pw).c; }
+        function cpGen() { doCopy(document.getElementById('gOut').textContent, 'Generated password copied!'); }
+        function fillGen() { const pw = genStr(); document.getElementById('fPw').value = pw; updMS(pw); toast('⚡ Generated!', 'in'); }
+        function saveGen() { const pw = document.getElementById('gOut').textContent; if (!pw || pw === 'Click Generate!') return; openAdd(); setTimeout(() => { document.getElementById('fPw').value = pw; updMS(pw); }, 150); }
+
+        // ═══ AUTOFILL ═══
+        const afGuides = {
+            chrome: `<div class="afs"><div class="afn"><div class="afnum">1</div><div class="afst">Chrome Settings</div></div><div class="afd">Chrome → ⋮ → Settings → <b>Autofill → Password Manager</b> → manually add करें</div></div><div class="afs"><div class="afn"><div class="afnum">2</div><div class="afst">Best: Bitwarden Extension</div></div><div class="afd">Chrome Web Store से <b>Bitwarden</b> install → VaultX CSV export → Bitwarden में import → Auto-fill work करेगा</div><div class="afcode">VaultX → Backup → Export CSV → Bitwarden → Import → Generic CSV</div></div>`,
+            firefox: `<div class="afs"><div class="afn"><div class="afnum">1</div><div class="afst">Firefox Bitwarden</div></div><div class="afd">Firefox Add-ons → <b>Bitwarden</b> → VaultX CSV import करें</div></div>`,
+            android: `<div class="afs"><div class="afn"><div class="afnum">1</div><div class="afst">Android Autofill Service</div></div><div class="afd">Settings → <b>System → Language & Input → Autofill Service</b> → Bitwarden select करें</div></div><div class="afs"><div class="afn"><div class="afnum">2</div><div class="afst">Setup</div></div><div class="afd">Play Store → Bitwarden install → VaultX CSV import → Android autofill में set करें</div></div>`,
+            samsung: `<div class="afs"><div class="afn"><div class="afnum">1</div><div class="afst">Samsung Pass</div></div><div class="afd">Samsung Browser → Settings → <b>Samsung Pass</b> → Passwords manually add करें</div></div>`,
+            edge: `<div class="afs"><div class="afn"><div class="afnum">1</div><div class="afst">Edge Password Manager</div></div><div class="afd">Edge → Settings → <b>Passwords</b> → या Bitwarden extension use करें</div></div>`,
+            brave: `<div class="afs"><div class="afn"><div class="afnum">1</div><div class="afst">Brave Autofill</div></div><div class="afd">Brave → Settings → Autofill → Passwords → या Bitwarden extension use करें</div></div>`,
+            bitwarden: `<div class="afs"><div class="afn"><div class="afnum">1</div><div class="afst">VaultX से Export</div></div><div class="afd">VaultX → Backup → <b>Export CSV</b> click करें</div></div><div class="afs"><div class="afn"><div class="afnum">2</div><div class="afst">Bitwarden Import</div></div><div class="afd">Bitwarden → Tools → Import → Format: <b>Generic CSV</b> → file upload</div></div><div class="afs"><div class="afn"><div class="afnum">3</div><div class="afst">Autofill ON</div></div><div class="afd">Bitwarden Settings → <b>Auto-fill</b> enable → सब apps/sites पर automatically fill</div></div>`
+        };
+        function showAFG(t) { const d = document.getElementById('afG'); d.style.display = 'block'; d.innerHTML = '<div class="div"></div>' + afGuides[t]; d.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+        function afFill(idx) { const p = V.pw[idx]; doCopy(p.pw, p.site + ' password copied!'); setTimeout(() => { if (confirm('🤖 AutoFill Assist\n\nSite: ' + p.site + '\nUsername: ' + p.user + '\nPassword: ***COPIED***\n\nUsername भी copy करें?')) { doCopy(p.user, 'Username copied!'); } }, 100); }
+
+        // ═══ ORIGIN LOCK ═══
+        // Sirf VaultX app aur VaultX extension hi .vaultbak open kar sakti hai
+        const VAULTX_SIG = 'VaultX-Proprietary-v3';
+        const VAULTX_ORIGIN_HASH = '7a3f9b2e1c8d4f6a'; // shared secret between app & extension
+        async function signPayload(data) {
+            const raw = JSON.stringify(data);
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw + VAULTX_ORIGIN_HASH));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+        }
+        async function verifyOrigin(obj) {
+            if (obj.sig !== 'VaultX-Proprietary-v3') throw new Error('🚫 Yeh file VaultX ke liye nahi hai!');
+            if (!obj.originHash) throw new Error('🚫 Origin token missing — invalid file!');
+            // Verify hash matches our secret
+            const expected = await signPayload({ app: obj.app, version: obj.version });
+            if (obj.originHash !== expected) throw new Error('🚫 File tampered ya kisi aur app se export ki gayi!');
+        }
+
+        // ═══ EXPORT ═══
+        async function doExp(fmt) {
+            const pws = V.pw; let content, fname, mime;
+            if (fmt === 'vaultbak') {
+                const pw = prompt('🔑 Export के लिए Master Password डालें:');
+                if (!pw) return;
+                const salts2=['vx_3_salt','vx_2_salt','vx_salt','']; let ok2=false;
+                for(let s of salts2){if(await hashPw(pw,s)===V.master){ok2=true;break;}}
+                if (!ok2) { toast('❌ Wrong Password', 'er'); return; }
+                toast('⏳ Encrypting...', 'in');
+                try {
+                    const meta = { app: 'BabaSitaRam Pro', version: '3', date: new Date().toISOString() };
+                    const originHash = await signPayload({ app: meta.app, version: meta.version });
+                    const enc = await encData({ passwords: pws, meta }, pw);
+                    content = JSON.stringify({ app: 'BabaSitaRam Pro', version: '3', sig: VAULTX_SIG, originHash, encrypted: true, vault_backup: true, data: enc });
+                    fname = 'bsr-backup-' + new Date().toISOString().split('T')[0] + '.vaultbak';
+                    mime = 'application/json';
+                } catch (e) { toast('❌ Encryption failed', 'er'); return; }
+            } else if (fmt === 'json') {
+                content = JSON.stringify({ app: 'BabaSitaRam Pro', version: '3', exported: new Date().toISOString(), passwords: pws }, null, 2);
+                fname = 'bsr-export.json'; mime = 'application/json';
+            } else if (fmt === 'csv') {
+                const hdr = 'name,url,username,password,notes,type\n';
+                const rows = pws.map(p => `"${(p.site || '').replace(/"/g, '""')}","${(p.url || '').replace(/"/g, '""')}","${(p.user || '').replace(/"/g, '""')}","${(p.pw || '').replace(/"/g, '""')}","${(p.notes || '').replace(/"/g, '""')}","login"`).join('\n');
+                content = hdr + rows; fname = 'bsr-export.csv'; mime = 'text/csv';
+            }
+            if (window.AndroidBridge) {
+                window.AndroidBridge.saveFile(content, fname, mime);
+            } else {
+                const blob = new Blob([content], { type: mime });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = fname; a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+            toast('📤 ' + fname, 'ok');
+        }
+
+        // ═══ IMPORT ═══
+        function openImpModal() {
+            document.getElementById('impPw').value = '';
+            document.getElementById('impErr').textContent = ''; document.getElementById('impErr').style.display = 'none';
+            impMode = 'merge'; document.getElementById('imMrg').classList.add('on'); document.getElementById('imRpl').classList.remove('on');
+            openM('mImp');
+        }
+        function setIM(m, btn) { impMode = m; document.querySelectorAll('#mImp .fb').forEach(b => b.classList.remove('on')); btn.classList.add('on'); }
+
+        let nativePickerMode = '';
+
+        function decodeNativeFile(base64) {
+            const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+            return new TextDecoder().decode(bytes);
+        }
+
+        function selectImportFile() {
+            nativePickerMode = 'import';
+            if (window.AndroidBridge && AndroidBridge.openFilePicker) {
+                AndroidBridge.openFilePicker('window.__bsrNativeFile');
+            } else {
+                document.getElementById('fImp').click();
+            }
+        }
+
+        function startRestore() {
+            nativePickerMode = 'restore';
+            if (window.AndroidBridge && AndroidBridge.openFilePicker) {
+                AndroidBridge.openFilePicker('window.__bsrNativeFile');
+            } else {
+                document.getElementById('fR').click();
+            }
+        }
+
+        window.__bsrNativeFile = function(base64, fileName) {
+            if (!base64) {
+                const err = document.getElementById(nativePickerMode === 'restore' ? 'rErr' : 'impErr');
+                if (err) { err.textContent = '❌ File select/read failed'; err.style.display = 'block'; err.style.color = 'var(--err)'; }
+                return;
+            }
+            try {
+                const text = decodeNativeFile(base64);
+                if (nativePickerMode === 'restore') {
+                    handleRestoreText(text, fileName || 'backup.vaultbak');
+                } else {
+                    handleImportText(text, fileName || 'backup.vaultbak');
+                }
+            } catch (e) {
+                const err = document.getElementById(nativePickerMode === 'restore' ? 'rErr' : 'impErr');
+                if (err) { err.textContent = '❌ File decode failed'; err.style.display = 'block'; err.style.color = 'var(--err)'; }
+            }
+        };
+
+        async function handleImp(input) {
+            const file = input.files[0]; if (!file) return;
+            try {
+                await handleImportText(await file.text(), file.name);
+            } finally {
+                input.value = '';
+            }
+        }
+
+        async function handleImportText(text, fileName) {
+            const pw = document.getElementById('impPw').value;
+            const err = document.getElementById('impErr');
+            err.style.display = 'block'; err.style.color = 'var(--a2)'; err.textContent = '⏳ Importing...';
+            try {
+                let passwords = [];
+                const ext = (fileName || '').split('.').pop().toLowerCase();
+                if (ext === 'vaultbak') passwords = await parseVB(text, pw);
+                else if (ext === 'json') passwords = parseJ(text);
+                else if (ext === 'csv') passwords = parseC(text);
+                else {
+                    try { passwords = await parseVB(text, pw); }
+                    catch { try { passwords = parseJ(text); } catch { passwords = parseC(text); } }
+                }
+
+                if (!passwords.length) {
+                    err.textContent = '⚠️ कोई password नहीं मिला';
+                    err.style.color = 'var(--warn)';
+                    return;
+                }
+
+                let added = 0;
+                if (impMode === 'replace') {
+                    if (!confirm('⚠️ सब delete होगा और ' + passwords.length + ' import होंगे!')) return;
+                    V.pw = passwords;
+                    added = passwords.length;
+                } else {
+                    const ex = new Set(V.pw.map(p => p.id || p.site + '_' + p.user));
+                    passwords.forEach(p => {
+                        const k = p.id || p.site + '_' + p.user;
+                        if (!ex.has(k)) { V.pw.push(p); added++; }
+                    });
+                }
+                save();
+                closeM('mImp');
+                refreshAll();
+                toast('✅ ' + added + ' passwords imported!', 'ok');
+            } catch (e) {
+                err.textContent = '❌ ' + e.message;
+                err.style.color = 'var(--err)';
+            }
+        }
+
+        async function parseVB(text, pw) {
+            let obj; try { obj = JSON.parse(text); } catch (e) { throw new Error('Invalid file format'); }
+            const findList = (o) => {
+                if (!o || typeof o !== 'object') return null;
+                if (Array.isArray(o) && o.length > 0) return o;
+                const targets = ['passwords', 'items', 'entries', 'data', 'list', 'vault'];
+                for (let t of targets) {
+                    if (o[t] && Array.isArray(o[t]) && o[t].length > 0) return o[t];
+                    if (o[t] && typeof o[t] === 'object') { let res = findList(o[t]); if (res) return res; }
+                }
+                for (let k in o) {
+                    if (!targets.includes(k) && typeof o[k] === 'object') { let res = findList(o[k]); if (res) return res; }
+                }
+                return null;
+            };
+
+            if ((obj.encrypted || obj.vault_backup) && obj.data) {
+                // ═ ORIGIN LOCK CHECK ═
+                if (obj.sig || obj.originHash) {
+                    try { await verifyOrigin(obj); }
+                    catch (e) { throw new Error(e.message); }
+                }
+                let dec;
+                try {
+                    dec = await decData(obj.data, pw || '');
+                } catch (e) {
+                    if (!pw) throw new Error('Password required for encrypted backup');
+                    throw new Error('Wrong password or corrupted file');
+                }
+                const list = findList(dec);
+                if (!list) throw new Error('Decrypted file contains no password data');
+                return list.map(norm);
+            }
+            const list = findList(obj);
+            if (!list) throw new Error('Unknown backup format or empty file');
+            return list.map(norm);
+        }
+        function parseJ(text) {
+            const obj = JSON.parse(text);
+            if (obj.items) return obj.items.filter(i => i.type === 1).map(i => ({ id: uid(), site: i.name || '', user: (i.login && i.login.username) || '', pw: (i.login && i.login.password) || '', url: (i.login && i.login.uris && i.login.uris[0] && i.login.uris[0].uri) || '', cat: 'Other', notes: i.notes || '', fav: i.favorite || false, created: new Date().toISOString(), updated: new Date().toISOString() }));
+            if (obj.passwords) return obj.passwords.map(norm);
+            if (Array.isArray(obj)) return obj.map(norm);
+            throw new Error('Unknown JSON format');
+        }
+        function parseC(text) {
+            const lines = text.split('\n').filter(l => l.trim());
+            if (!lines.length) throw new Error('Empty CSV');
+            const hdr = lines[0].toLowerCase().replace(/"/g, '').split(',');
+            const find = keys => keys.reduce((f, k) => { const i = hdr.findIndex(h => h.includes(k)); return i >= 0 ? i : f }, -1);
+            const si = find(['name', 'title', 'site']), ui = find(['username', 'user', 'email', 'login']), pi = find(['password', 'pass']), uri = find(['url', 'uri', 'link']), ni = find(['notes', 'note']);
+            const res = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = csvLine(lines[i]); if (!cols.length) continue;
+                const site = cols[si >= 0 ? si : 0] || '', user = cols[ui >= 0 ? ui : 2] || '', pw = cols[pi >= 0 ? pi : 3] || '';
+                if (!site && !user && !pw) continue;
+                res.push({ id: uid(), site, user, pw, url: uri >= 0 ? cols[uri] || '' : '', cat: 'Other', notes: ni >= 0 ? cols[ni] || '' : '', fav: false, created: new Date().toISOString(), updated: new Date().toISOString() });
+            }
+            return res;
+        }
+        function csvLine(line) { const r = []; let c = '', inQ = false; for (let i = 0; i < line.length; i++) { const ch = line[i]; if (ch === '"') { if (inQ && line[i + 1] === '"') { c += '"'; i++; } else inQ = !inQ; } else if (ch === ',' && !inQ) { r.push(c.trim()); c = ''; } else c += ch; } r.push(c.trim()); return r; }
+        function norm(p) { return { id: p.id || uid(), site: p.site || p.name || p.title || '', user: p.user || p.username || p.email || p.login || '', pw: p.pw || p.password || p.pass || '', url: p.url || p.uri || p.website || '', cat: p.cat || p.category || 'Other', notes: p.notes || p.note || '', fav: p.fav || p.favorite || false, created: p.created || new Date().toISOString(), updated: p.updated || new Date().toISOString() }; }
+
+        // ═══ RESTORE (lock screen) ═══
+        async function handleRestore(input) {
+            const file = input.files[0]; if (!file) return;
+            try {
+                await handleRestoreText(await file.text(), file.name);
+            } finally {
+                input.value = '';
+            }
+        }
+
+        async function handleRestoreText(text, fileName) {
+            const pw = document.getElementById('rp').value;
+            const pw2 = document.getElementById('rp2').value;
+            const err = document.getElementById('rErr'), btn = document.getElementById('rBtn');
+            err.style.display = 'block'; err.style.color = 'var(--a2)'; err.textContent = '⏳ Restoring...';
+            btn.disabled = true; btn.textContent = '⏳ Loading...';
+            try {
+                const ext = (fileName || '').split('.').pop().toLowerCase();
+                let passwords = [];
+                if (ext === 'vaultbak') passwords = await parseVB(text, pw);
+                else if (ext === 'json') passwords = parseJ(text);
+                else passwords = parseC(text);
+
+                if (!passwords.length) {
+                    err.textContent = '⚠️ कोई data नहीं';
+                    err.style.color = 'var(--warn)';
+                    return;
+                }
+
+                V.pw = passwords;
+                V.master = await hashPw(pw2 || pw || 'vaultx');
+                save();
+                err.textContent = '✅ ' + passwords.length + ' passwords restore!';
+                err.style.color = 'var(--ok)';
+                setTimeout(() => enterApp(), 700);
+            } catch (e) {
+                err.textContent = '❌ ' + e.message;
+                err.style.color = 'var(--err)';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📁 Backup File Select करें';
+            }
+        }
+
+        // ═══ CHANGE MASTER ═══
+        function chgMaster() { openM('mCM'); document.getElementById('cmErr').textContent = ''; }
+        async function saveCM() {
+            const curr = document.getElementById('cmC').value, n1 = document.getElementById('cmN1').value, n2 = document.getElementById('cmN2').value;
+            const err = document.getElementById('cmErr');
+            if (await hashPw(curr) !== V.master) { err.textContent = '❌ Current password गलत!'; err.style.color = 'var(--err)'; return; }
+            if (n1.length < 6) { err.textContent = '❌ कम से कम 6 characters!'; err.style.color = 'var(--err)'; return; }
+            if (n1 !== n2) { err.textContent = '❌ Passwords match नहीं!'; err.style.color = 'var(--err)'; return; }
+            V.master = await hashPw(n1); save(); closeM('mCM'); toast('✅ Master Password changed!', 'ok');
+        }
+
+        // ═══ SETTINGS ═══
+        function clrAll() { if (!confirm('⚠️ सब delete?')) return; if (!confirm('🚨 Final confirm!')) return; V.pw = []; save(); refreshAll(); toast('🗑️ All deleted', 'er'); }
+
+        // ═══ MODAL BG CLOSE + ESCAPE ═══
+        ['mAdd', 'mImp', 'mCM'].forEach(id => { document.getElementById(id).addEventListener('click', e => { if (e.target === document.getElementById(id)) closeM(id); }); });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') ['mAdd', 'mImp', 'mCM'].forEach(closeM);
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); if (document.getElementById('app').style.display !== 'none') openAdd(); }
+        });
+
+        // ═══ INIT ═══
+        load();
+        if (!V.pw.length && !V.master) {
+            V.pw = [
+                { id: uid(), site: 'Gmail', user: 'you@gmail.com', pw: 'Gm@il#2024Strong!', url: 'https://gmail.com', cat: 'Email', notes: 'Personal email', fav: true, created: new Date().toISOString(), updated: new Date().toISOString() },
+                { id: uid(), site: 'Facebook', user: 'yourname', pw: 'fb123', url: 'https://facebook.com', cat: 'Social', notes: '', fav: false, created: new Date().toISOString(), updated: new Date().toISOString() },
+                { id: uid(), site: 'SBI Bank', user: 'acc123456', pw: 'SBI@Bank2024!Secure', url: 'https://onlinesbi.sbi', cat: 'Banking', notes: 'Main account', fav: true, created: new Date().toISOString(), updated: new Date().toISOString() },
+                { id: uid(), site: 'Amazon', user: 'you@gmail.com', pw: 'Amz@India99!', url: 'https://amazon.in', cat: 'Shopping', notes: '', fav: false, created: new Date().toISOString(), updated: new Date().toISOString() },
+            ]; save();
+        }
+        if (!V.master) swTab('setup', document.querySelectorAll('.ltab')[1]);
+    </script>
+</body>
+
+</html>
