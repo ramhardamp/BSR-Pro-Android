@@ -22,6 +22,11 @@ jobs:
           cp -R BABASITARAM-main/apk android
           rm -rf BABASITARAM-main
           test -f android/gradlew
+          # Apply the verified Android fixes kept in this repository.
+          cp patches/BsrAutofillService.java android/app/src/main/java/com/babasitaram/pro/BsrAutofillService.java
+          cp patches/MainActivity.java android/app/src/main/java/com/babasitaram/pro/MainActivity.java
+          cp patches/index.html android/app/src/main/assets/index.html
+          cp patches/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
       - name: Build APK
         working-directory: android
         run: |
