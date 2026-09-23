@@ -40,6 +40,11 @@ public class BsrAutofillService extends AutofillService {
                               @NonNull CancellationSignal signal,
                               @NonNull FillCallback callback) {
         try {
+            if (!getSharedPreferences("WebViewAppPrefs", MODE_PRIVATE).getBoolean("vx3_unlocked", false)) {
+                callback.onSuccess(null);
+                return;
+            }
+
             List<FillContext> contexts = request.getFillContexts();
             if (contexts == null || contexts.isEmpty()) { callback.onSuccess(null); return; }
 
@@ -58,19 +63,9 @@ public class BsrAutofillService extends AutofillService {
                         new AutofillId[]{fields.usernameId, fields.passwordId}).build());
             }
 
-            if (matches.isEmpty()) {
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra("autofill_package", packageName);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                PendingIntent pi = PendingIntent.getActivity(this, 1001, intent,
-                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-                Dataset ds = buildDataset(fields, "", "", "BabaSitaRam Pro", "Vault kholein", pi.getIntentSender());
+            for (VaultEntry entry : matches) {
+                Dataset ds = buildDataset(fields, entry.user, entry.pw, entry.site, entry.user, null);
                 if (ds != null) responseBuilder.addDataset(ds);
-            } else {
-                for (VaultEntry entry : matches) {
-                    Dataset ds = buildDataset(fields, entry.user, entry.pw, entry.site, entry.user, null);
-                    if (ds != null) responseBuilder.addDataset(ds);
-                }
             }
             callback.onSuccess(responseBuilder.build());
         } catch (Exception e) { callback.onSuccess(null); }
