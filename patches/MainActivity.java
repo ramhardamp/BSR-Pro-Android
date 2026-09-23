@@ -165,6 +165,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    private String getFileName(Uri uri) {
+        String name = null;
+        Cursor cursor = null;
+        try {
+            cursor = getContentResolver().query(uri,
+                    new String[]{OpenableColumns.DISPLAY_NAME},
+                    null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (index >= 0) name = cursor.getString(index);
+            }
+        } catch (Exception ignored) {
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        return name != null && !name.isEmpty() ? name : "backup.vaultbak";
+    }
+
     @Override
     public void onBackPressed() {
         if (webView.canGoBack()) webView.goBack();
