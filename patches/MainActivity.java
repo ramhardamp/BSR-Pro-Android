@@ -43,12 +43,24 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> filePickerLauncher;
     private String pendingPickerCallback;
     private String pendingBiometricCallback;
+    private boolean filePickerInFlight = false;
+    private boolean biometricInFlight = false;
+    private final android.os.Handler lifecycleHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable lifecycleLock = () -> {
+        if (!isFinishing() && !filePickerInFlight && !biometricInFlight) {
+            try { setVaultUnlocked(false); } catch (Exception ignored) {}
+            if (webView != null) {
+                webView.post(() -> webView.evaluateJavascript("if(typeof lockNow==='function'){lockNow();}", null));
+            }
+        }
+    };
 
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getSharedPreferences("WebViewAppPrefs", MODE_PRIVATE).edit().putBoolean("vx3_unlocked", false).apply();
 
         webView = findViewById(R.id.webView);
 
@@ -60,6 +72,13 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowContentAccess(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        settings.setUseWideViewPort(false);
+        settings.setLoadWithOverviewMode(false);
+        settings.setSupportZoom(false);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
+        settings.setTextZoom(100);
+        settings.setDefaultFontSize(16);
 
         webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient());
@@ -68,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         filePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
+                filePickerInFlight = false;
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getData();
                     if (uri != null) readFileAndSendToJs(uri);
@@ -86,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
     // ── Biometric Prompt ──
     private void showBiometricPrompt(String callbackFn) {
         pendingBiometricCallback = callbackFn;
+        biometricInFlight = true;
 
         BiometricManager bm = BiometricManager.from(this);
         int canAuth = bm.canAuthenticate(
@@ -95,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
             // Device lock not set up
+            biometricInFlight = false;
             sendBiometricResult(false, "Device lock not set up");
             return;
         }
@@ -136,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
         String js = pendingBiometricCallback + "(" + success + ", '" + escaped + "');";
         webView.post(() -> webView.evaluateJavascript(js, null));
         pendingBiometricCallback = null;
+        biometricInFlight = false;
     }
 
     // ── File Read (chunked to avoid WebView evaluateJavascript size limits) ──
@@ -182,6 +205,28 @@ public class MainActivity extends AppCompatActivity {
             if (cursor != null) cursor.close();
         }
         return name != null && !name.isEmpty() ? name : "backup.vaultbak";
+    }
+
+    private void setVaultUnlockedInternal(boolean unlocked) {
+        getSharedPreferences("WebViewAppPrefs", MODE_PRIVATE)
+                .edit().putBoolean("vx3_unlocked", unlocked).apply();
+    }
+
+    private void setVaultUnlocked(boolean unlocked) {
+        setVaultUnlockedInternal(unlocked);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        lifecycleHandler.removeCallbacks(lifecycleLock);
+        lifecycleHandler.postDelayed(lifecycleLock, 1200);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        lifecycleHandler.removeCallbacks(lifecycleLock);
     }
 
     @Override
@@ -236,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void openFilePicker(String callbackFn) {
             pendingPickerCallback = callbackFn;
+            filePickerInFlight = true;
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.setType("*/*");
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -256,6 +302,16 @@ public class MainActivity extends AppCompatActivity {
                 BiometricManager.Authenticators.DEVICE_CREDENTIAL
             );
             return result == BiometricManager.BIOMETRIC_SUCCESS;
+        }
+
+        @JavascriptInterface
+        public void setVaultUnlocked(boolean unlocked) {
+            setVaultUnlockedInternal(unlocked);
+        }
+
+        @JavascriptInterface
+        public boolean isVaultUnlocked() {
+            return getSharedPreferences("WebViewAppPrefs", MODE_PRIVATE).getBoolean("vx3_unlocked", false);
         }
 
         @JavascriptInterface
