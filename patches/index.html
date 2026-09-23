@@ -2231,6 +2231,9 @@
                 if (window.AndroidBridge && AndroidBridge.syncVault) {
                     AndroidBridge.syncVault(JSON.stringify(V.pw || []));
                 }
+                if (window.AndroidBridge && AndroidBridge.setVaultUnlocked) {
+                    AndroidBridge.setVaultUnlocked(true);
+                }
             } catch (e) { }
             clearTimeout(save._abT);
             save._abT = setTimeout(() => autoBackup(), 2000);
@@ -2379,6 +2382,9 @@
             }, 400);
         }
         function lockNow() {
+            if (window.AndroidBridge && AndroidBridge.setVaultUnlocked) {
+                try { AndroidBridge.setVaultUnlocked(false); } catch (e) {}
+            }
             document.getElementById('lockScreen').style.display = 'flex';
             document.getElementById('app').style.display = 'none';
             document.getElementById('mpI').value = '';
